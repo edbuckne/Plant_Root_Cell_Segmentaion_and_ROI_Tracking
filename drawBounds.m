@@ -5,7 +5,7 @@ SZ = size(image);
 
 
 for column = 3:(SZ(2)-num)
-    perc = double(column)/double(SZ(2))*100/2
+    %perc = double(column)/double(SZ(2))*100/2
     dataC = zeros(SZ(1),1)+1; %Variable for data to be stored (column)
     %Take raw data from the columns and filter that data
     for i=1:num
@@ -26,7 +26,7 @@ end
 %Do the same thing for the rows
 
 for row=3:(SZ(1)-num)
-    perc = double(row)/double(SZ(1))*100/2+50
+    %perc = double(row)/double(SZ(1))*100/2+50
     dataR = zeros(1,SZ(2))+1;
     %Obtain and filter data
     for i=1:num
