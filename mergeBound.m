@@ -1,7 +1,8 @@
-function [ boundIm ] = mergeBound( virtIm, horIm )
+function [ boundIm, blkPxls ] = mergeBound( virtIm, horIm )
 
 SZ = size(virtIm); %Only need to find the size of one.  They are the same size
 boundIm = zeros(SZ(1),SZ(2),3); %Empty rgb image
+blkCnt = 0;
 
 for x=1:SZ(2)
     for y=1:SZ(1)
@@ -13,10 +14,30 @@ for x=1:SZ(2)
             boundIm(y,x,1) = 0;
             boundIm(y,x,2) = 0;
             boundIm(y,x,3) = 0;
+            blkCnt = blkCnt+1;
         else %Else just keep the old image
             boundIm(y,x,:) = virtIm(y,x,:);
         end
     end
 end
+
+blkPxls = zeros(blkCnt,2);
+ind = 1;
+
+for x=1:SZ(2)
+    for y=1:SZ(1)
+        tmpV = (1-virtIm(y,x,1))*(1-virtIm(y,x,2))*(1-virtIm(y,x,3));
+        tmpH = (1-horIm(y,x,1))*(1-horIm(y,x,2))*(1-horIm(y,x,3));
+        if (tmpV==1 || tmpH==1) %If it is black, paint the new pixel black
+            blkPxls(ind,:) = [x y];
+            ind = ind+1;
+        else %Else just keep the old image
+            boundIm(y,x,:) = virtIm(y,x,:);
+        end
+    end
+end
+
+
+
 end
 

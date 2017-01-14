@@ -8,25 +8,27 @@ digits = log(tm)/log(10); %This does a round down opperation
 digitInt = uint8(digits-0.5)+1;
 
 fileStrings = '01020304050607080910111213141516171819202122232425262728293031323334353637383940';
-fileNameWB = 'SPM0x_TM000x_CM2_CHN00_PLNxx.tif';
-fileNameGFP = 'SPM0x_TM000x_CM1_CHN00_PLNxx.tif';
+fileNameWB = './SPM0x/TM000x/SPM0x_TM000x_CM2_CHN00_PLNxx.tif';
+fileNameGFP = './SPM0x/TM000x/SPM0x_TM000x_CM1_CHN00_PLNxx.tif';
 
-fileNameWB = [fileNameWB(1:4) spmStr fileNameWB(6:12-digitInt) tmStr fileNameWB(13:end)];
-fileNameGFP = [fileNameGFP(1:4) spmStr fileNameGFP(6:12-digitInt) tmStr fileNameGFP(13:end)];
+fileNameWB = [fileNameWB(1:6) spmStr fileNameWB(8:14-digitInt) tmStr fileNameWB(15:19) spmStr fileNameWB(21:27-digitInt) tmStr fileNameWB(28:end)];
+fileNameGFP = [fileNameGFP(1:6) spmStr fileNameGFP(8:14-digitInt) tmStr fileNameGFP(15:19) spmStr fileNameGFP(21:27-digitInt) tmStr fileNameGFP(28:end)];
 
 dataWidth = 20;
 agressive = 12;
-mkdir cell_segmentation
+mkdir cell_finder
 
 for i=1:num
-    newFile = [fileNameWB(1:26) fileStrings(i*2-1) fileStrings(i*2) fileNameWB(29:32)];
+    newFile = [fileNameWB(1:41) fileStrings(i*2-1) fileStrings(i*2) fileNameWB(44:end)];
     WBim=imread(newFile); %Wide-band image read
-    newFile = [fileNameGFP(1:26) fileStrings(i*2-1) fileStrings(i*2) fileNameGFP(29:32)];
+    newFile = [fileNameGFP(1:41) fileStrings(i*2-1) fileStrings(i*2) fileNameGFP(44:end)];
     GFPim=imread(newFile); %GFP image read
-    disp(['Reading...' newFile]); %Displays to the user the status of each picture
+    disp(['Reading...' newFile(16:end)]); %Displays to the user the status of each picture
     
     WBimC = histeq(WBim); %Contrasts the image
-    WBimC2 = wiener2(WBimC,[agressive agressive]); %Uses a wiener filtering algorithm for the picture
+    h = fspecial('disk',agressive); %Filtering the image
+    WBimC2 = imfilter(WBimC,h,'replicate'); 
+    %WBimC2 = wiener2(WBimC,[agressive agressive]); %Uses a wiener filtering algorithm for the picture
     redWBimC = greyToRGB(WBimC2,1,'inv'); %Creates an inverted red image of the wide-band image
     greenGFPim = greyToRGB(GFPim,2,'inv'); %Creates an inverted green image of the GFP image
     [boundIm,cellLocation] = drawBounds(redWBimC,dataWidth,0); %Draws the boundaries on the red wideband image
@@ -34,8 +36,8 @@ for i=1:num
     J = mergeOrig(orig,cellLocation); %Plots the cells in their location
     mergedImage = mergeCellIms(J,greenGFPim,0.85); %Merges the two images
     
-    imwrite(mergedImage,['./cell_segmentation/' newFile]) %Creates a tif image in the cellSegmentation folder
-    disp([newFile ' Finished']); %Displays to the user the status of each picture
+    imwrite(mergedImage,['./cell_finder/' newFile(16:end)]) %Creates a tif image in the cellSegmentation folder
+    disp([newFile(16:end) ' Finished']); %Displays to the user the status of each picture
     szCL = size(cellLocation);
     cellLoc(1:szCL(1),1:szCL(2),i)=cellLocation;
 end

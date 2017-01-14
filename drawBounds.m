@@ -45,7 +45,7 @@ for row=3:(SZ(1)-num)
 end
 
 if opt
-    boundImage = mergeBound(tmpVirt,tmpHor);
+    [boundImage, cellLoc] = mergeBound(tmpVirt,tmpHor);
 else
     [boundImage,cellLoc] = mergeCells(tmpVirt,tmpHor,image);
 end
