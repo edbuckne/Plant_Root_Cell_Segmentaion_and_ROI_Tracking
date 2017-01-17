@@ -15,11 +15,11 @@ for column = 3:(SZ(2)-num)
 
     %Derivative of data, filtered derivative, and corrected filtered data
     derDataC = diff(filtDataC);
-    filtDiffDataC=filter([0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1],1,derDataC);
-    corrFiltDiffDataC = [filtDiffDataC(4:end); 0; 0; 0];
+    %filtDiffDataC=filter([0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1],1,derDataC);
+    %corrFiltDiffDataC = [filtDiffDataC(4:end); 0; 0; 0];
     
     %Paint on the vertical boundaries
-    ZCrossingMatC = findZCrossing(corrFiltDiffDataC,opt);
+    ZCrossingMatC = findZCrossing(derDataC,opt);
     tmpVirt = virtBound(tmpVirt,ZCrossingMatC,column);
 end
 
@@ -36,11 +36,11 @@ for row=3:(SZ(1)-num)
     
     %Find estimated differential, filter, and correct filter
     derDataR = diff(filtDataR);
-    filtDiffDataR=filter([0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1],1,derDataR);
-    corrFiltDiffDataR = [filtDiffDataR(4:end) 0 0 0];
+    %filtDiffDataR=filter([0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1],1,derDataR);
+    %corrFiltDiffDataR = [filtDiffDataR(4:end) 0 0 0];
     
     %Paint on the boundaries
-    ZCrossingMatR = findZCrossing(corrFiltDiffDataR,opt);
+    ZCrossingMatR = findZCrossing(derDataR,opt);
     tmpHor = horBound(tmpHor,ZCrossingMatR,row);
 end
 

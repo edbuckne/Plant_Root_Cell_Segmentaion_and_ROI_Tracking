@@ -14,8 +14,8 @@ fileNameGFP = './SPM0x/TM000x/SPM0x_TM000x_CM1_CHN00_PLNxx.tif';
 fileNameWB = [fileNameWB(1:6) spmStr fileNameWB(8:14-digitInt) tmStr fileNameWB(15:19) spmStr fileNameWB(21:27-digitInt) tmStr fileNameWB(28:end)];
 fileNameGFP = [fileNameGFP(1:6) spmStr fileNameGFP(8:14-digitInt) tmStr fileNameGFP(15:19) spmStr fileNameGFP(21:27-digitInt) tmStr fileNameGFP(28:end)];
 
-dataWidth = 20;
-agressive = 12;
+dataWidth = 1;
+agressive = 8;
 mkdir cell_finder
 
 for i=1:num
@@ -24,15 +24,19 @@ for i=1:num
     newFile = [fileNameGFP(1:41) fileStrings(i*2-1) fileStrings(i*2) fileNameGFP(44:end)];
     GFPim=imread(newFile); %GFP image read
     disp(['Reading...' newFile(16:end)]); %Displays to the user the status of each picture
+    szWB = size(WBim); %Size of the WideBand image
+    orig = zeros(szWB(1),szWB(2),3);
     
-    WBimC = histeq(WBim); %Contrasts the image
+    %WBimC = histeq(WBim); %Contrasts the image
     h = fspecial('disk',agressive); %Filtering the image
-    WBimC2 = imfilter(WBimC,h,'replicate'); 
+    WBimC2 = imfilter(WBim,h,'replicate'); 
     %WBimC2 = wiener2(WBimC,[agressive agressive]); %Uses a wiener filtering algorithm for the picture
     redWBimC = greyToRGB(WBimC2,1,'inv'); %Creates an inverted red image of the wide-band image
     greenGFPim = greyToRGB(GFPim,2,'inv'); %Creates an inverted green image of the GFP image
     [boundIm,cellLocation] = drawBounds(redWBimC,dataWidth,0); %Draws the boundaries on the red wideband image
-    orig=greyToRGB(WBim,1,'reg'); %Use the original image to create a red image of it
+    tempIm = im2double(WBim);
+    orig(:,:,1) = tempIm; orig(:,:,2) = tempIm; orig(:,:,3) = tempIm;
+    
     J = mergeOrig(orig,cellLocation); %Plots the cells in their location
     mergedImage = mergeCellIms(J,greenGFPim,0.85); %Merges the two images
     
