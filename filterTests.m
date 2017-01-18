@@ -1,4 +1,4 @@
-fileName = 'SPM01_TM0001_CM2_CHN00_PLN23.tif';
+fileName = 'SPM01_TM0001_CM2_CHN00_PLN10.tif';
 I = imread(fileName);
 %I = I(50:550,100:300);
 I2 = im2double(I);
@@ -148,8 +148,7 @@ for x = 1:szI8(2)
 end
 I9 = mergeOrig(RGBGrey, cellLoc);
 
-imwrite(I7,['./region/Z' fileName]);
-imwrite(I9,['./region/' fileName]);
+
 
 % figure(2)
 % plot(1:length(data),data);
@@ -159,5 +158,22 @@ imwrite(I9,['./region/' fileName]);
 % plot(1:length(newData),newData);
 % figure(1)
 % imshow(I)
-% figure(2)
+% figure(1)
 % imshow(I7)
+% figure(2)
+% imshow(I9)
+
+szI7 = size(I7);
+
+I10 = zeros(szI7(1),szI7(2));
+for x = 1:szI7(2)
+    for y = 1:szI7(1)
+        if (I7(y,x) > 0.3)
+            I10(y,x) = 1;
+        end
+    end
+end
+I11 = I10.*I9(:,:,1);
+
+imwrite(I11,['./region/Y' fileName]);
+imwrite(I9,['./region/' fileName]);
