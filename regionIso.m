@@ -13,13 +13,14 @@ for i=1:Ltm
     %load([imageDataFN tmStr '.mat']); %Load region data
     sz = size(regionMatrix); %Get the size of the region matrix
     completeRegionMatrix = zeros(sz(1),sz(2),sz(3)); %Stores the region matrix used later
-    tmpMat = zeros(sz(1),sz(2));
+    
     
     for j=1:sz(3)
         disp(['Creating region image for z-stack ' num2str(j)]);
+        tmpMat = zeros(sz(1),sz(2));
         for x = 1:sz(2)
             for y = 1:sz(1)
-                if (regionMatrix(y,x) > threshold) %Pixels that are above threshold, paint white
+                if (regionMatrix(y,x,j) > threshold) %Pixels that are above threshold, paint white
                     tmpMat(y,x) = 1;
                 end
             end
