@@ -23,8 +23,8 @@ function [ cellInfo3D ] = cellLocationInfo3D( cellInfo, Z_STACKS, TM )
 %     an area of interest.
 disp(['Constructing 3D super voxel information for time stamp ' num2str(TM)]);
 
-MAX_DIST = 10.00; %Max distance a cell COM location can move between stacks
-DP = 5; %Data points
+MAX_DIST = 15.00; %Max distance a cell COM location can move between stacks
+DP = 10; %Data points
 
 s = size(cellInfo); %Information about how many cell info vectors were found
 OUT = zeros(s(1),DP); %OUT is the matrix that holds the "raw" 3d segmentation information
@@ -35,7 +35,7 @@ z = 1; %Used to reference which z stack
 start = i; %Make note of where you started
 while (cellInfo(i,5)==z||cellInfo(i,5)==0) %Go through first stack
     count = count+1; %Counts how many vectors are found before pass the 1st stack
-    OUT(i,:) = [i -1 cellInfo(i,3:5)]; %Puts information into the OUT matrix
+    OUT(i,:) = [i -1 cellInfo(i,3:5) 0 0 0 0 0]; %Puts information into the OUT matrix
     i = i+1;
 end
 enD = i-1; %Where to find the end of the last stack
@@ -104,9 +104,9 @@ end
 
 %Add a sorted column
 s = size(OUT);
-zs = zeros(s(1),1); %This column is added to the OUT function to indicated when it has been sorted
-OUT = [OUT zs];
-s = size(OUT);
+% zs = zeros(s(1),1); %This column is added to the OUT function to indicated when it has been sorted
+% OUT = [OUT zs];
+% s = size(OUT);
 SORTED_OUT_1 = zeros(s); %Where the sorted (backwards) matrix will go
 b = 1; %Index of the SORTED_OUT_1 matrix
 idNew = 1; %A new id for each 3D segmented super voxel
@@ -119,17 +119,17 @@ for i=s(1):-1:1 %Start at the end of OUT and go to the beginning
     end
     if (OUT(i,6)==0) %Hasn't been sorted yet
         OUT(i,6) = 1; %Indicated that it has now
-        if (OUT(i,2)==-1) %It has no parent
-            SORTED_OUT_1(b,:) = [OUT(i,1:5) idNew];
-            b=b+1;
+        if (OUT(i,2)==-1) %It has no parent (Lone wolf) ignore it
+%             SORTED_OUT_1(b,:) = [OUT(i,1:5) idNew 0 0 0 0];
+%             b=b+1;
             continue; %Do loop again
         end
-        SORTED_OUT_1(b,:) = [OUT(i,1:5) idNew]; %If it does have a parent
+        SORTED_OUT_1(b,:) = [OUT(i,1:5) idNew 0 0 0 0]; %If it does have a parent
         b = b+1;
         while ~(OUT(j,2)==-1) %Keep sorting until you find the original vector (with no parent)
             j=OUT(j,2); %Index the parent
             OUT(j,6) = 1;
-            SORTED_OUT_1(b,:) = [OUT(j,1:5) idNew];
+            SORTED_OUT_1(b,:) = [OUT(j,1:5) idNew 0 0 0 0];
             b = b+1;
         end
         idNew = idNew+1; %Once we have reached here, we can create a new super voxel id number
@@ -151,15 +151,22 @@ while (SORTED_OUT_2(i,3)==0)
     i=i+1;
 end
 id3d = SORTED_OUT_2(i,6); %id3d holds the number of super voxels found
-cellInfo3D = zeros(id3d,7); %Final out matrix
+cellInfo3D = zeros(id3d,10); %Final out matrix
 j=i; %j is the index for SORTED_OUT_2
+
 for finalIndex=1:id3d %Look at each super voxel
     cellInfo3D(finalIndex,6) = SORTED_OUT_2(j,5); %Record z1
     cellInfo3D(finalIndex,1) = finalIndex; %Super voxel ID number
+    Xsum = 0; %We want to record the center of mass as the average X and Y pixels
+    Ysum = 0;
+    numInSV = 0;
     maxW = 0;
     maxH = 0;
     while (SORTED_OUT_2(j,6)==id3d) %Go through all of the vectors that describe a super voxel
         cellId = SORTED_OUT_2(j,1);
+        Xsum = Xsum+SORTED_OUT_2(j,3);
+        Ysum = Ysum+SORTED_OUT_2(j,4);
+        numInSV = numInSV+1;
         %Below are the 4 2D points that describe a rectangle 
         B = cellInfo(cellId,9);
         T = cellInfo(cellId,8);
@@ -184,6 +191,10 @@ for finalIndex=1:id3d %Look at each super voxel
     end
     id3d=id3d-1; %Once a super voxel has been completed, go to the next one
     cellInfo3D(finalIndex,7) = SORTED_OUT_2(j-1,5); %Record z2
+    cellInfo3D(finalIndex,8) = int16(Xsum/numInSV); %Record x 3D COM
+    cellInfo3D(finalIndex,9) = int16(Ysum/numInSV); %Record y 3D COM
+    cellInfo3D(finalIndex,10) = int16((cellInfo3D(finalIndex,6)+cellInfo3D(finalIndex,7))/2);
+    SORTED_OUT_2
 end
 %save(['./segmentation/3DCellInfo_TM' num2str(TM)],'cellInfo3D');
 end

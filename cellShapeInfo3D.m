@@ -46,6 +46,9 @@ for i=1:s(1)
     if (z2>sIm(3))
         z2 = sIm(3);
     end
+    xcom = testInfo(8);
+    ycom = testInfo(9);
+    zcom = testInfo(10);
     zDepth = z2-z1+1; %How big is this box?
     xWidth = x2-x1+1;
     yHeight = y2-y1+1;
@@ -54,14 +57,15 @@ for i=1:s(1)
     
 
     [~,~,~, mu] = find3DMaxIndex(testMat); %Finds the XZY of the super voxel COM
-    Xc1 = round((x2-x1)/2); %Center of the super voxel
-    Yc1 = round((y2-y1)/2);
-    Zc1 = round((z2-z1)/2);
-    CP = [Xc1 Yc1 Zc1]; %Center of testMat
-    AP = [x1-1 y1-1 z1-1]; %Beginning corner of original image
-    COM = CP+AP; %COM of supervoxel for the cell
+    Xc1 = xcom-x1; %Center of the super voxel
+    Yc1 = ycom-y1;
+    Zc1 = zcom-z1;
+%     CP = [Xc1 Yc1 Zc1]; %Center of testMat
+%     AP = [x1-1 y1-1 z1-1]; %Beginning corner of original image
+%     COM = CP+AP; %COM of supervoxel for the cell
+    COM = [xcom ycom zcom]; %Gets the center of mass calculation from 3D segmentation
     
-    cellShape_prime(i,1:5) = [i COM COM(3)*ZRatio]; % $$REPLACE$$ - store the COM information
+    cellShape_prime(i,1:5) = [i COM COM(3)*ZRatio]; % Store the COM information
     
     %Find the variance of the gaussian PDF in the x direction
     dataX=testMat(Yc1,:,Zc1); %Obtain 1D data
