@@ -1,72 +1,145 @@
-function [ pixelLoc ] = findRegion( filtIm, x, y )
-CL = [y x];
-maxSz = 28;
-numLines = 40;
-szIm = size(filtIm);
+function [ XX, YY ] = findRegion( logIm, x, y, dir )
+    %Variables
+    Xdis = 0;
+    Ydis = 0;
+    thDis = 40;
+    XX = x;
+    YY = y;
+    SC = 1;
 
-Y1 = CL(1)-maxSz+1;
-Y2 = CL(1)+maxSz;
-X1 = CL(2)-maxSz+1;
-X2 = CL(2)+maxSz;
-
-if ((Y1<=0)||(X1<=0)||(Y2>szIm(1))||(X2>szIm(2)))
-    pixelLoc = [1; 1];
-    return
-end
-
-regMat = filtIm(Y1:Y2,X1:X2);
-szreg = size(regMat);
-modMat = regMat;
-% figure(3)
-% mesh(1:szreg(2),szreg(1):-1:1,regMat);
-
-maxLoc = zeros(1,2);
-maxVal = 0;
-
-for y=1:szreg(1)
-    for x=1:szreg(2)
-        if(~(regMat(y,x)>maxVal))
-        else
-            maxLoc = [y x];
-            maxVal = regMat(y,x);
+    sim = size(logIm); %get the size of the image
+    
+    LR = 1; %Left right direction, start right
+    UD = 1; %Up down direction, start down
+    if(dir==1) %North
+        while((YY>0)&&(XX>0)&&(XX<sim(2))&&(logIm(YY,XX))==1) %Within the bounds of the image and the region
+            if(YY==0) %If y ever goes to the bounds of the image, return
+                YY=1;
+                return;
+            elseif(YY<y-thDis)
+                return;    
+            end
+            if(logIm(YY-1,XX)==1) %If directly above is good, go to that
+                YY=YY-1;
+                continue;
+            elseif(logIm(YY-1,XX+LR)==1) %If diaganol is good, go to that
+                YY=YY-1;
+                XX=XX+LR;
+                continue;
+            elseif(logIm(YY-1,XX-LR)==1)
+                YY=YY-1;
+                XX=XX-LR;
+                LR=LR*-1; %Swith directions of left right
+                continue;
+            elseif(logIm(YY,XX+LR)==1)
+                XX=XX+LR;
+                continue;
+            elseif(logIm(YY,XX-LR)==1&&~(SC==YY))
+                XX=XX-LR;
+                SC=YY; %Note where the swith occured
+                LR=LR*-1;
+                continue;
+            end
+            YY=YY-1;
+            break;
+        end
+    elseif(dir==2) %South
+        while((YY<sim(1))&&(XX>0)&&(XX<sim(2))&&(logIm(YY,XX))==1) %Within the bounds of the image and the region
+            if(YY==sim(1)) %If y ever goes to the bounds of the image, return
+                YY=sim(1);
+                return;
+            elseif(YY>y+thDis)
+                return;
+            end
+            if(logIm(YY+1,XX)==1) %If directly above is good, go to that
+                YY=YY+1;
+                continue;
+            elseif(logIm(YY+1,XX+LR)==1) %If diaganol is good, go to that
+                YY=YY+1;
+                XX=XX+LR;
+                continue;
+            elseif(logIm(YY+1,XX-LR)==1)
+                YY=YY+1;
+                XX=XX-LR;
+                LR=LR*-1; %Swith directions of left right
+                continue;
+            elseif(logIm(YY,XX+LR)==1)
+                XX=XX+LR;
+                continue;
+            elseif(logIm(YY,XX-LR)==1&&~(SC==YY))
+                XX=XX-LR;
+                SC=YY; %Note where the swith occured
+                LR=LR*-1;
+                continue;
+            end
+            YY=YY+1;
+            break;
+        end
+    elseif(dir==3) %East
+        while((XX<sim(2))&&(YY>0)&&(YY<sim(1))&&(logIm(YY,XX))==1) %Within the bounds of the image and the region
+            if(XX==sim(2)) %If y ever goes to the bounds of the image, return
+                XX=sim(2);
+                return;
+            elseif(XX>x+thDis)
+                return;
+            end
+            if(logIm(YY,XX+1)==1) %If directly right is good, go to that
+                XX=XX+1;
+                continue;
+            elseif(logIm(YY+UD,XX+1)==1) %If diaganol is good, go to that
+                YY=YY+UD;
+                XX=XX+1;
+                continue;
+            elseif(logIm(YY-UD,XX+1)==1)
+                YY=YY-UD;
+                XX=XX+1;
+                UD=UD*-1; %Swith directions of up down
+                continue;
+            elseif(logIm(YY+UD,XX)==1)
+                YY=YY+UD;
+                continue;
+            elseif(logIm(YY-UD,XX)==1&&~(SC==XX))
+                YY=YY-UD;
+                SC=XX; %Note where the swith occured
+                UD=UD*-1;
+                continue;
+            end
+            XX=XX+1;
+            break;
+        end
+        elseif(dir==4) %West
+        while((XX>0)&&(YY>0)&&(YY<sim(1))&&(logIm(YY,XX))==1) %Within the bounds of the image and the region
+            if(XX==0) %If y ever goes to the bounds of the image, return
+                XX=1;
+                return;
+            elseif(XX<x-thDis)
+                return;
+            end
+            if(logIm(YY,XX-1)==1) %If directly right is good, go to that
+                XX=XX-1;
+                continue;
+            elseif(logIm(YY+UD,XX-1)==1) %If diaganol is good, go to that
+                YY=YY+UD;
+                XX=XX-1;
+                continue;
+            elseif(logIm(YY-UD,XX-1)==1)
+                YY=YY-UD;
+                XX=XX-1;
+                UD=UD*-1; %Swith directions of up down
+                continue;
+            elseif(logIm(YY+UD,XX)==1)
+                YY=YY+UD;
+                continue;
+            elseif(logIm(YY-UD,XX)==1&&~(SC==XX))
+                YY=YY-UD;
+                SC=XX; %Note where the swith occured
+                UD=UD*-1;
+                continue;
+            end
+            XX=XX-1;
+            break;
         end
     end
-end
-minVal = min(min(regMat));
-
-figure(4)
-[c h] = imcontour(regMat,numLines);
-data = c(1,:);
-lineCheck = maxVal-2*(maxVal-minVal)/numLines;
-
-storeI = 0;
-indexLevels = [];
-for i=length(data):-1:1
-    if(~(data(i)<1))
-    else
-        indexLevels=[indexLevels; i];
-    end
-end
-
-boundInd = isBound(c,indexLevels);
-if (boundInd <= 1)
-    Bad = [1; 1];
-    pixelLoc = Bad;
-    return
-end
-regStart = indexLevels(boundInd);
-
-pixelLoc = zeros(2,((indexLevels(boundInd-1)-1)-(regStart+1)));
-
-
-for i=(regStart+1):(indexLevels(boundInd-1)-1);
-    pixel = c(:,i);
-    pixelLoc(:,i-regStart) = [CL(2)+pixel(1)-maxSz; CL(1)+pixel(2)-maxSz];
-    modMat(int8(pixel(2)),int8(pixel(1))) = 0.5;
-end
-
-% figure(5)
-% mesh(1:szreg(2),szreg(1):-1:1,modMat);
 
 end
 

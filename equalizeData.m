@@ -30,7 +30,11 @@ if (lenMaxData>lenMinData) %More max points than min points
         lenMinData = length(minData);
     end
 elseif (lenMaxData<lenMinData) %More min points than max points
-    maxData = [1; maxData];
+    while (lenMaxData<lenMinData)
+        maxData = [1; maxData]; 
+        lenMaxData = length(maxData);
+        lenMinData = length(minData);
+    end
 elseif (lenMaxData==0 || lenMinData==0)
     DATA_OUT=DATA_IN;
     return
@@ -68,7 +72,6 @@ for i=1:(lenMinData-1) %Go to the next to last because the last element will be 
     t = 1:tHalf;
     DATA_OUT(minData(i)+1:maxData(i+1)) = -0.5.*cos(2*pi*freq.*t)+0.5;
 end
-
-
+DATA_OUT = [DATA_OUT(5:end); 0; 0; 0; 0];
 end
 

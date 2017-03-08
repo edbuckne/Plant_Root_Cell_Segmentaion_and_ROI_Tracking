@@ -1,7 +1,7 @@
-function [ FINAL_OUT ] = cellLocationInfo3D( cellInfo, Z_STACKS, TM )
+function [ cellInfo3D ] = cellLocationInfo3D( cellInfo, Z_STACKS, TM )
 %cellLocationInfo3D takes in the cellInfo matrix produced by the function
 %"cellLocationInfo2D" and segments the 3 dimensional slices by defining the
-%data into a FINAL_OUT matrix. Note, this only works for 1 time stamp at a
+%data into a cellInfo3D matrix. Note, this only works for 1 time stamp at a
 %time.
 %     Inputs:
 %         1. cellInfo - matrix of 2 dimensional images that describe where the 
@@ -10,8 +10,8 @@ function [ FINAL_OUT ] = cellLocationInfo3D( cellInfo, Z_STACKS, TM )
 %         3. TM - time stamp.  The user must indicate which time stamp this 
 %         is the evaluation for in order to save the .mat file correctly.
 %     Outputs
-%         1. FINAL_OUT - matrix that defines segmented boxes or "super voxels"
-% Column definitions for FINAL_OUT
+%         1. cellInfo3D - matrix that defines segmented boxes or "super voxels"
+% Column definitions for cellInfo3D
 %     1. ID - Each cell indicated gets a unique ID number
 %     2. x1
 %     3. x2
@@ -147,15 +147,15 @@ end
 %All false positive vectors will be in the beginning of the matrix now, so go until we don't
 %see zeros anymore
 i = 1;
-while (SORTED_OUT_2(i,1)==0)
+while (SORTED_OUT_2(i,3)==0)
     i=i+1;
 end
 id3d = SORTED_OUT_2(i,6); %id3d holds the number of super voxels found
-FINAL_OUT = zeros(id3d,7); %Final out matrix
+cellInfo3D = zeros(id3d,7); %Final out matrix
 j=i; %j is the index for SORTED_OUT_2
 for finalIndex=1:id3d %Look at each super voxel
-    FINAL_OUT(finalIndex,6) = SORTED_OUT_2(j,5); %Record z1
-    FINAL_OUT(finalIndex,1) = finalIndex; %Super voxel ID number
+    cellInfo3D(finalIndex,6) = SORTED_OUT_2(j,5); %Record z1
+    cellInfo3D(finalIndex,1) = finalIndex; %Super voxel ID number
     maxW = 0;
     maxH = 0;
     while (SORTED_OUT_2(j,6)==id3d) %Go through all of the vectors that describe a super voxel
@@ -168,13 +168,13 @@ for finalIndex=1:id3d %Look at each super voxel
         H = B-T; %Height
         W = R-L; %Width
         if (H>maxH) %If H is greater that H max, put in final matrix and replace
-            FINAL_OUT(finalIndex,4)=T; %y1 and y2
-            FINAL_OUT(finalIndex,5)=B;
+            cellInfo3D(finalIndex,4)=T; %y1 and y2
+            cellInfo3D(finalIndex,5)=B;
             maxH = H;
         end
         if (W>maxW) %If W is greated that W max, put in final matrix and replace
-            FINAL_OUT(finalIndex,2)=L; %x1 and x2
-            FINAL_OUT(finalIndex,3)=R;
+            cellInfo3D(finalIndex,2)=L; %x1 and x2
+            cellInfo3D(finalIndex,3)=R;
             maxW = W;
         end
         j=j+1; %Increase SORTED_OUT_2 matrix index
@@ -183,8 +183,8 @@ for finalIndex=1:id3d %Look at each super voxel
         end
     end
     id3d=id3d-1; %Once a super voxel has been completed, go to the next one
-    FINAL_OUT(finalIndex,7) = SORTED_OUT_2(j-1,5); %Record z2
+    cellInfo3D(finalIndex,7) = SORTED_OUT_2(j-1,5); %Record z2
 end
-save(['./segmentation/3DCellInfo_TM' num2str(TM)],'FINAL_OUT');
+%save(['./segmentation/3DCellInfo_TM' num2str(TM)],'cellInfo3D');
 end
 

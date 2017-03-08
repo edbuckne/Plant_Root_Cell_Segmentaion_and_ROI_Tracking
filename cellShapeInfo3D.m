@@ -1,4 +1,4 @@
-function [ cellShape3D ] = cellShapeInfo3D( cellInfo3D, Idata )
+function [ cellShape3D ] = cellShapeInfo3D( cellInfo3D, Idata, CM )
 %CellShapeInfo3D takes in the cell information calculated from the
 %cellLocationInfo3D function and creates data that can be used to track the
 %cells over time.  This function has 2 inputs and 1 output;
@@ -27,6 +27,7 @@ ZRatioRound = 14;
 TH = 0.15; %Threshold for counting size
 
 s = size(cellInfo3D);
+sIm = size(Idata);
 cellShape_prime = zeros(s(1),10);
 
 for i=1:s(1)
@@ -42,13 +43,20 @@ for i=1:s(1)
         z1 = 1;
     end
     z2 = testInfo(7)+1;
+    if (z2>sIm(3))
+        z2 = sIm(3);
+    end
     zDepth = z2-z1+1; %How big is this box?
     xWidth = x2-x1+1;
     yHeight = y2-y1+1;
     
     testMat = Idata(y1:y2,x1:x2,z1:z2); %Matrix that holds the super voxel data
     
-    [Xc1,Yc1,Zc1, mu] = find3DMaxIndex(testMat); %Finds the XZY of the super voxel COM
+
+    [~,~,~, mu] = find3DMaxIndex(testMat); %Finds the XZY of the super voxel COM
+    Xc1 = round((x2-x1)/2); %Center of the super voxel
+    Yc1 = round((y2-y1)/2);
+    Zc1 = round((z2-z1)/2);
     CP = [Xc1 Yc1 Zc1]; %Center of testMat
     AP = [x1-1 y1-1 z1-1]; %Beginning corner of original image
     COM = CP+AP; %COM of supervoxel for the cell
