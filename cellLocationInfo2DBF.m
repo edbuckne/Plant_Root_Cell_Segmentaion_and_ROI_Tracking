@@ -29,12 +29,12 @@ for z=1:sim(3) %Let's go through each z stack, one at a time
     disp(['Locating cellular activity in brightfield channel for z stack ' num2str(z)]);
     %Perform the LEE algorithm on each image
     I = I2(:,:,z);
-    [~, I2r] = partitionImage2D(I,'row');
-    [~, I2c] = partitionImage2D(I,'col');
+    [~, I2r] = partitionImage2D(I,'row',1);
+    [~, I2c] = partitionImage2D(I,'col',1);
     I2o = I2r.*I2c;
     I2o = imfilter(I2o,h,'replicate');
-    [~, I2r] = partitionImage2D(I2o,'row');
-    [~, I2c] = partitionImage2D(I2o,'col');
+    [~, I2r] = partitionImage2D(I2o,'row',1);
+    [~, I2c] = partitionImage2D(I2o,'col',1);
     I2o = I2r.*I2c;
     I3 = I2o.*maskIm;
     
@@ -126,25 +126,18 @@ disp(['Segmenting cells that indicate GFP activity']);
 for z=1:sim(3) %Go through each z stack
     %Perform the LEE algorithm on each image
     I = I2(:,:,z);
-    [~, I2r] = partitionImage2D(I,'row');
-    [~, I2c] = partitionImage2D(I,'col');
+    [~, I2r] = partitionImage2D(I,'row',1);
+    [~, I2c] = partitionImage2D(I,'col',1);
     I2o = I2r.*I2c;
-    I2o = imfilter(I2o,h,'replicate');
-    [~, I2r] = partitionImage2D(I2o,'row');
-    [~, I2c] = partitionImage2D(I2o,'col');
-    I2o = I2r.*I2c;
-    I2o = imfilter(I2o,h,'replicate');
-    I2th = im2bw(I2o,TH);
-    I2rz = im2bw(I2r,0.01);
-    I2cz = im2bw(I2c,0.01);
-    Ilog = I2rz.*I2cz;
+    I2o = 1-imfilter(I2o,h,'replicate');
+    Ilog = im2bw(im2double(watershed(I2o)),0.001); %Watershed segmentation algorithm
     %     figure
     %     imshow(Ilog);
     
     Imask = zeros(sim(1),sim(2)); %For each z-stack create a mask image to keep track of segmented areas
     
     for j=i:s(1) %Starting at beginning of stack, look until you see a new z-stack
-        disp([num2str(j/s(1).*100,'%2.1d') ' Percent segmented']);
+        disp([num2str(int8(j/s(1).*100),'%i') ' Percent segmented']);
         if(BFCL(j,5)>z) %If we get to the next z stack, exit
             i=j; %Point i to the beginning of the next z-stack
             break;

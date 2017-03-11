@@ -1,4 +1,4 @@
-function [ OUT_MATRIX ] = cellLocationInfo2D( SPM, TM, STACKS, CM, PLANE, OPT )
+function [ OUT_MATRIX ] = cellLocationInfo2D( SPM, TM, STACKS, CM, PLANE, OPT, A )
 %cellLocationInfo takes in the specimen number, time array, and the number
 %of z stacks.  It find the cell location information for 2 dimensions.
 %This includes the following columns:
@@ -32,9 +32,9 @@ TH_VAL = 0.15;
 h = fspecial('disk',8);
 h2 = fspecial('disk',4);
 fileNameProj = './normalized/SPM0x/TM000x/SPM0x_TM000x_CM01_CHN00_xyProjection.corrected.tif';
-Idata1 = microImInput(SPM,TM,STACKS,1);
+%Idata1 = microImInput(SPM,TM,STACKS,1);
 
-if(strcmp(PLANE,'z'))
+if(strcmp(PLANE,'z')||strcmp(PLANE,'int'))
     if(CM==1)
         fileName = './normalized/SPM0x/TM000x/SPM0x_TM000x_CM01_CHN00.corrected.tif'; %Location of .tif files
         h = fspecial('disk',10);
@@ -51,7 +51,6 @@ elseif(strcmp(PLANE,'y'))
         h = fspecial('disk',4);
     end
 else
-    error('Please enter either x or y for the stack option');
 end
 
 Ltm = length(TM); %length of time periods
@@ -63,7 +62,7 @@ for t = TM %t=1:Ltm %Each time stamp
     disp(['Evaluating time stamp ' num2str(t)]);
     tmStr = num2str(t); %Turns time number into a string
     
-    if(strcmp(PLANE,'z')) %Z stack option
+    if(strcmp(PLANE,'z')||strcmp(PLANE,'int')) %Z stack option
         digits = log(t)/log(10); %Creates a new file name for each time stamp
         digitInt = uint8(digits-0.5)+1;
         fileName = [fileName(1:17) spmStr fileName(19:25-digitInt) tmStr fileName(26:30) spmStr fileName(32:38-digitInt) tmStr fileName(39:end)]; %Inserts parameter information
@@ -80,7 +79,7 @@ for t = TM %t=1:Ltm %Each time stamp
         %Read the first image to get a size measurement
         Itmp=imread(fileName, 1); %Image read
         s = size(Itmp); %Size of image
-    else %Y stack option
+    elseif(strcmp(PLANE,'y')) %Y stack option
         fileName = [fileName(1:17) tmStr '.tif'];
         
         %Read the first image to get a size measurement
@@ -90,18 +89,22 @@ for t = TM %t=1:Ltm %Each time stamp
     end
     
     for z=1:STACKS %Each z stack
-        I = im2double(imread(fileName,z));
+        if(strcmp(PLANE,'int'))
+            I=A(:,:,z);
+        else
+            I = im2double(imread(fileName,z));
+        end
         if(CM==1)
             I = imfilter(I,h,'replicate');
         end
         
         %Runs the LEE algorithm
-        [I1r, I2r] = partitionImage2D(I,'row');
-        [I1c, I2c] = partitionImage2D(I,'col');
+        [I1r, I2r] = partitionImage2D(I,'row',1);
+        [I1c, I2c] = partitionImage2D(I,'col',1);
         I2 = I2r.*I2c;
         I2 = imfilter(I2,h,'replicate');
-        [I1r, I2r] = partitionImage2D(I2,'row');
-        [I1c, I2c] = partitionImage2D(I2,'col');
+        [I1r, I2r] = partitionImage2D(I2,'row',1);
+        [I1c, I2c] = partitionImage2D(I2,'col',1);
         I2 = I2r.*I2c;
         I3 = I2.*maskIm;
         %For GFP channel threshold before everything else
@@ -123,7 +126,6 @@ for t = TM %t=1:Ltm %Each time stamp
                 end
             end
         end
-
         
         
         s2 = size(cLoc); %Finds how many cells were found
@@ -141,7 +143,7 @@ for t = TM %t=1:Ltm %Each time stamp
         for i=1:s2(1)
             %If the cell location is in a region, ignore it and continue
             OUT_MATRIX = [OUT_MATRIX; zeros(1,9)];
-            if(testIm(cLoc(i,2),cLoc(i,1))==1||Idata1(cLoc(i,2),cLoc(i,1),z)<TH_VAL)
+            if(testIm(cLoc(i,2),cLoc(i,1))==1)%||Idata1(cLoc(i,2),cLoc(i,1),z)<TH_VAL)
                 continue
             end
             OUT_MATRIX(i+ADD_INDEX,1:2) = [ID t];
@@ -166,7 +168,7 @@ for t = TM %t=1:Ltm %Each time stamp
             xPt = cLoc(i,1);
             %Vertical
             %Top
-            while (I2c(yPt,xPt)>0)
+            while (I2c(yPt,xPt)>0&&yPt>1)
                 yPt=yPt-1;
             end
             OUT_MATRIX(i+ADD_INDEX,8) = yPt;
@@ -185,33 +187,33 @@ for t = TM %t=1:Ltm %Each time stamp
             dimCols = R-L;
             testIm(T:B,L:R) = zeros(dimRows+1,dimCols+1)+1;
             if (printOpt)
-                rgbTest(T:B,L:R,1) = zeros(dimRows+1,dimCols+1)+1; %Left Line
-%                 rgbTest(T:B,R,1) = zeros(dimRows+1,1)+1; %Right Line
-%                 rgbTest(T,L:R,1) = zeros(1,dimCols+1)+1; %Top Line
-%                 rgbTest(B,L:R,1) = zeros(1,dimCols+1)+1; %Bottom Line
-%                 rgbTest(T:B,L:R,2) = zeros(dimRows+1,1); %Left Line
-%                 rgbTest(T:B,R,2) = zeros(dimRows+1,1); %Right Line
-%                 rgbTest(T,L:R,2) = zeros(1,dimCols+1); %Top Line
-%                 rgbTest(B,L:R,2) = zeros(1,dimCols+1); %Bottom Line
-%                 rgbTest(T:B,L,3) = zeros(dimRows+1,1); %Left Line
-%                 rgbTest(T:B,R,3) = zeros(dimRows+1,1); %Right Line
-%                 rgbTest(T,L:R,3) = zeros(1,dimCols+1); %Top Line
-%                 rgbTest(B,L:R,3) = zeros(1,dimCols+1); %Bottom Line
+                rgbTest(T:B,L,1) = zeros(dimRows+1,1)+1; %Left Line
+                rgbTest(T:B,R,1) = zeros(dimRows+1,1)+1; %Right Line
+                rgbTest(T,L:R,1) = zeros(1,dimCols+1)+1; %Top Line
+                rgbTest(B,L:R,1) = zeros(1,dimCols+1)+1; %Bottom Line
+                rgbTest(T:B,L,2) = zeros(dimRows+1,1); %Left Line
+                rgbTest(T:B,R,2) = zeros(dimRows+1,1); %Right Line
+                rgbTest(T,L:R,2) = zeros(1,dimCols+1); %Top Line
+                rgbTest(B,L:R,2) = zeros(1,dimCols+1); %Bottom Line
+                rgbTest(T:B,L,3) = zeros(dimRows+1,1); %Left Line
+                rgbTest(T:B,R,3) = zeros(dimRows+1,1); %Right Line
+                rgbTest(T,L:R,3) = zeros(1,dimCols+1); %Top Line
+                rgbTest(B,L:R,3) = zeros(1,dimCols+1); %Bottom Line
                 CT = OUT_MATRIX(i+ADD_INDEX,4)-2;
                 CB = OUT_MATRIX(i+ADD_INDEX,4)+2;
                 CL = OUT_MATRIX(i+ADD_INDEX,3)-2;
                 CR = OUT_MATRIX(i+ADD_INDEX,3)+2;
-%                 if(CT*CB>0&&CL*CR>0)
-%                     rgbTest(CT:CB,CL:CR,1)=zeros(5);
-%                     rgbTest(CT:CB,CL:CR,2)=zeros(5);
-%                     rgbTest(CT:CB,CL:CR,3)=zeros(5)+1;
-%                 end
+                if(CT*CB>0&&CL*CR>0)
+                    rgbTest(CT:CB,CL:CR,1)=zeros(5);
+                    rgbTest(CT:CB,CL:CR,2)=zeros(5);
+                    rgbTest(CT:CB,CL:CR,3)=zeros(5)+1;
+                end
             end
         end
         
 
         if (printOpt)
-            imwrite(imfilter(I3,h2,'replicate'),['./segmentation/SEG_CM' num2str(CM) '_TM' num2str(t) '2.tif'],'WriteMode','Append');
+            imwrite(rgbTest,['./segmentation/SEG_CM' num2str(CM) '_TM' num2str(t) '.tif'],'WriteMode','Append');
         end
         
         if(s2(1)>0)

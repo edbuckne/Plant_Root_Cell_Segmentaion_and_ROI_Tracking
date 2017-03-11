@@ -1,4 +1,4 @@
-function [ I_OUT, I_OUT_GRAD ] = partitionImage2D( I_IN, opt )
+function [ I_OUT, I_OUT_GRAD ] = partitionImage2D( I_IN, opt, IT )
 % partitionImage2D takes in an image and partitions it into it's cell
 % sections.  
 %   Input:
@@ -31,7 +31,7 @@ newIm = zeros(sz(1),sz(2));
 
 for i=1:sz(1)
     data = I_IN(i,:);
-    newIm(i,:) = equalizeData(data); %Local Extreme Equalization algorithm
+    newIm(i,:) = equalizeData(data,IT); %Local Extreme Equalization algorithm
 end
 
 if (strcmp(opt,COLUMN))

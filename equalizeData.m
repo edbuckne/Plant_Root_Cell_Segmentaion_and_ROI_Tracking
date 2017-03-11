@@ -1,4 +1,4 @@
-function [ DATA_OUT ] = equalizeData( DATA_IN )
+function [ DATA_OUT ] = equalizeData( DATA_IN, IT )
 %Takes in data and performs the Local Extreme Equalization
 %Input:
 %   1. DATA_IN - 1 dimensional data to be equalized
@@ -13,7 +13,11 @@ if (sz(2)>1)
 end
 
 %Find the local mins and maxes of the data and holds on to their locations
-dataFilt = filter([0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1],1,DATA_IN);
+if(IT==1)
+    dataFilt = filter([0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1],1,DATA_IN);
+else %If this isn't the first iteration, no need to filter
+    dataFilt = DATA_IN;
+end
 dataDiff = diff(dataFilt);
 maxData = findZCrossing(dataDiff,1); %Finds max points
 minData = findZCrossing(dataDiff,0); %Finds min points
@@ -72,6 +76,8 @@ for i=1:(lenMinData-1) %Go to the next to last because the last element will be 
     t = 1:tHalf;
     DATA_OUT(minData(i)+1:maxData(i+1)) = -0.5.*cos(2*pi*freq.*t)+0.5;
 end
-DATA_OUT = [DATA_OUT(5:end); 0; 0; 0; 0];
+if(IT==1)
+    DATA_OUT = [DATA_OUT(5:end); 0; 0; 0; 0];
+end
 end
 
