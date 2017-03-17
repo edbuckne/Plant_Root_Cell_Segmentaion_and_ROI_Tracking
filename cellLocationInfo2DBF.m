@@ -1,12 +1,17 @@
-function [ BFCL ] = cellLocationInfo2DBF( SPM, TM, STA, ACT_LOC )
+function [ BFCL ] = cellLocationInfo2DBF( SPM, TM, STA, ACT_LOC, opt, I1int, I2int )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 SD_DIST = 5;
 TH = 0.15;
 MAX_DIS = 5;
 
-I1 = microImInput(SPM,TM,STA,1);
-I2 = microImInput(SPM,TM,STA,2); %Take in images
+if(strcmp(opt,'int'))
+    I1 = I1int;
+    I2 = I2int;
+else
+    I1 = microImInput(SPM,TM,STA,1);
+    I2 = microImInput(SPM,TM,STA,2); %Take in images
+end
 h = fspecial('disk',8);
 
 %Creating the mask image

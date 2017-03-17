@@ -1,4 +1,4 @@
-function [ cellInfo3D ] = cellLocationInfo3D( cellInfo, Z_STACKS, TM )
+function [ cellInfo3D, SORTED_OUT_2 ] = cellLocationInfo3D( cellInfo, Z_STACKS, TM, PTH )
 %cellLocationInfo3D takes in the cellInfo matrix produced by the function
 %"cellLocationInfo2D" and segments the 3 dimensional slices by defining the
 %data into a cellInfo3D matrix. Note, this only works for 1 time stamp at a
@@ -126,22 +126,30 @@ for i=s(1):-1:1 %Start at the end of OUT and go to the beginning
         end
         SORTED_OUT_1(b,:) = [OUT(i,1:5) idNew 0 0 0 0]; %If it does have a parent
         b = b+1;
+        count=1;
         while ~(OUT(j,2)==-1) %Keep sorting until you find the original vector (with no parent)
+            count=count+1;
             j=OUT(j,2); %Index the parent
             OUT(j,6) = 1;
             SORTED_OUT_1(b,:) = [OUT(j,1:5) idNew 0 0 0 0];
             b = b+1;
         end
+        if(count<=PTH)
+            SORTED_OUT_1(b-count:b-1,:) = zeros(count,10);
+        end
         idNew = idNew+1; %Once we have reached here, we can create a new super voxel id number
     end
 end
-
+s=size(SORTED_OUT_1);
 %SORTED_OUT_2 is just SORTED_OUT_1 backwards
 SORTED_OUT_2 = zeros(s);
 j = s(1);
 for i=1:s(1)
-    SORTED_OUT_2(i,:) = SORTED_OUT_1(j,:);
-    j=j-1;
+    if~(SORTED_OUT_1(i,1)==0)
+        SORTED_OUT_2(j,:) = SORTED_OUT_1(i,:);
+        j=j-1;
+        continue;
+    end
 end
 
 %All false positive vectors will be in the beginning of the matrix now, so go until we don't
@@ -194,7 +202,7 @@ for finalIndex=1:id3d %Look at each super voxel
     cellInfo3D(finalIndex,8) = int16(Xsum/numInSV); %Record x 3D COM
     cellInfo3D(finalIndex,9) = int16(Ysum/numInSV); %Record y 3D COM
     cellInfo3D(finalIndex,10) = int16((cellInfo3D(finalIndex,6)+cellInfo3D(finalIndex,7))/2);
-    SORTED_OUT_2
+    SORTED_OUT_2;
 end
 %save(['./segmentation/3DCellInfo_TM' num2str(TM)],'cellInfo3D');
 end

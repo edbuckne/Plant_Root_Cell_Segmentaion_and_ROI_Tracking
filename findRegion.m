@@ -13,11 +13,18 @@ function [ XX, YY ] = findRegion( logIm, x, y, dir )
     UD = 1; %Up down direction, start down
     if(dir==1) %North
         while((YY>0)&&(XX>0)&&(XX<sim(2))&&(logIm(YY,XX))==1) %Within the bounds of the image and the region
-            if(YY==0) %If y ever goes to the bounds of the image, return
+            if(YY==1) %If y ever goes to the bounds of the image, return
                 YY=1;
                 return;
-            elseif(YY<y-thDis)
-                return;    
+            elseif(XX==1)
+                XX=1;
+                return;
+            elseif(YY==sim(1))
+                YY=sim(1);
+                return;
+            elseif(XX==sim(2))
+                XX=sim(2);
+                return;
             end
             if(logIm(YY-1,XX)==1) %If directly above is good, go to that
                 YY=YY-1;
@@ -45,10 +52,17 @@ function [ XX, YY ] = findRegion( logIm, x, y, dir )
         end
     elseif(dir==2) %South
         while((YY<sim(1))&&(XX>0)&&(XX<sim(2))&&(logIm(YY,XX))==1) %Within the bounds of the image and the region
-            if(YY==sim(1)) %If y ever goes to the bounds of the image, return
+            if(YY==1) %If y ever goes to the bounds of the image, return
+                YY=1;
+                return;
+            elseif(XX==1)
+                XX=1;
+                return;
+            elseif(YY==sim(1))
                 YY=sim(1);
                 return;
-            elseif(YY>y+thDis)
+            elseif(XX==sim(2))
+                XX=sim(2);
                 return;
             end
             if(logIm(YY+1,XX)==1) %If directly above is good, go to that
@@ -77,10 +91,17 @@ function [ XX, YY ] = findRegion( logIm, x, y, dir )
         end
     elseif(dir==3) %East
         while((XX<sim(2))&&(YY>0)&&(YY<sim(1))&&(logIm(YY,XX))==1) %Within the bounds of the image and the region
-            if(XX==sim(2)) %If y ever goes to the bounds of the image, return
-                XX=sim(2);
+            if(YY==1) %If y ever goes to the bounds of the image, return
+                YY=1;
                 return;
-            elseif(XX>x+thDis)
+            elseif(XX==1)
+                XX=1;
+                return;
+            elseif(YY==sim(1))
+                YY=sim(1);
+                return;
+            elseif(XX==sim(2))
+                XX=sim(2);
                 return;
             end
             if(logIm(YY,XX+1)==1) %If directly right is good, go to that
@@ -109,10 +130,17 @@ function [ XX, YY ] = findRegion( logIm, x, y, dir )
         end
         elseif(dir==4) %West
         while((XX>0)&&(YY>0)&&(YY<sim(1))&&(logIm(YY,XX))==1) %Within the bounds of the image and the region
-            if(XX==0) %If y ever goes to the bounds of the image, return
+            if(YY==1) %If y ever goes to the bounds of the image, return
+                YY=1;
+                return;
+            elseif(XX==1)
                 XX=1;
                 return;
-            elseif(XX<x-thDis)
+            elseif(YY==sim(1))
+                YY=sim(1);
+                return;
+            elseif(XX==sim(2))
+                XX=sim(2);
                 return;
             end
             if(logIm(YY,XX-1)==1) %If directly right is good, go to that

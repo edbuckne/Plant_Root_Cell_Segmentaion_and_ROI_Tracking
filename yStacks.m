@@ -1,4 +1,4 @@
-function yStacks( SPM, TM, Z_STACKS, CM)
+function OUT_IMAGES = yStacks( SPM, TM, Z_STACKS, CM)
 
 if(CM==1)
     fileName = [pwd '\normalized\SPM0x\TM000x\SPM0x_TM000x_CM01_CHN00.corrected.tif']; %Location of .tif files
@@ -25,17 +25,17 @@ for t = TM %t=1:Ltm %Each time stamp
     Itmp=imread(fileName, 1); %Image read
     s = size(Itmp); %Size of image
     inImages = zeros(s(1),s(2),Z_STACKS);
-    OUT_IMAGES = zeros(Z_STACKS,s(2),s(1)/2);
+    OUT_IMAGES = zeros(Z_STACKS,s(2),s(1));
     
     for z=1:Z_STACKS %Each z stack, take in the images
         inImages(:,:,z) = im2double(imread(fileName,z));
     end
     
-    for y=1:2:s(1)
+    for y=1:1:s(1)
         for z=1:Z_STACKS
             OUT_IMAGES(z,:,y) = inImages(y,:,z); %Create new images
         end
-        imwrite(OUT_IMAGES(:,:,y),[savePath tmStr '.tif'],'WriteMode','append');
+         %imwrite(OUT_IMAGES(:,:,y),[savePath tmStr '.tif'],'WriteMode','append');
     end
     disp(['Created ' num2str(s(1)) ' y stacks']);
 end
