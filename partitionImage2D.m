@@ -16,8 +16,10 @@ COLUMN = 'col';
 FILT_PARAM = 8;
 TH = 0.1;
 
-h = fspecial('disk',FILT_PARAM); %Filters the image
-I_IN = imfilter(I_IN,h,'replicate');
+if(IT==1)
+    h = fspecial('disk',FILT_PARAM); %Filters the image
+    I_IN = imfilter(I_IN,h,'replicate');
+end
 
 if (strcmp(opt,ROW))
 elseif (strcmp(opt,COLUMN))
@@ -28,7 +30,6 @@ end
 
 sz = size(I_IN); %Size of the image
 newIm = zeros(sz(1),sz(2));
-
 for i=1:sz(1)
     data = I_IN(i,:);
     newIm(i,:) = equalizeData(data,IT); %Local Extreme Equalization algorithm

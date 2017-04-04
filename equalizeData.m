@@ -13,15 +13,14 @@ if (sz(2)>1)
 end
 
 %Find the local mins and maxes of the data and holds on to their locations
-if(IT==1)
-    dataFilt = filter([0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1],1,DATA_IN);
-else %If this isn't the first iteration, no need to filter
+%if(IT==1)
+%    dataFilt = filter([0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1],1,DATA_IN);
+%else %If this isn't the first iteration, no need to filter
     dataFilt = DATA_IN;
-end
+%end
 dataDiff = diff(dataFilt);
 maxData = findZCrossing(dataDiff,1); %Finds max points
 minData = findZCrossing(dataDiff,0); %Finds min points
-minData = [1; minData];
 lenMaxData = length(maxData);
 lenMinData = length(minData);
 
@@ -39,7 +38,7 @@ elseif (lenMaxData<lenMinData) %More min points than max points
         lenMaxData = length(maxData);
         lenMinData = length(minData);
     end
-elseif (lenMaxData==0 || lenMinData==0)
+elseif (lenMaxData<=1 || lenMinData<=1)
     DATA_OUT=DATA_IN;
     return
 else %Same amount of data points
@@ -60,9 +59,23 @@ if(~(lenMaxData==lenMinData))
 end
 
 %Enter a sine wave into the newData array for each half time period
-
+if(minData(1)>maxData(2))
+    minData = [maxData(1)+1; minData];
+    maxData = [maxData; minData(end)-1];
+    lenMinData = length(minData);
+    lenMaxData = length(maxData);
+end
+if~(maxData(1)==1)
+    maxData = [1; maxData];
+    minData = [2; minData];
+end
 %max to min sections
+% [maxData minData]
 for i=1:lenMaxData
+%     if(abs(DATA_IN(minData(i))-DATA_IN(maxData(i)))<0.05)
+%         DATA_OUT(maxData(i)+1:minData(i)) = zeros(minData(i)-maxData(i),1)+1;
+%         continue;
+%     end
     tHalf = minData(i)-maxData(i); %Half time period
     freq = 0.5/double(tHalf); %Frequency of such half period
     t = 1:tHalf;
@@ -71,6 +84,10 @@ end
 
 %min to max sections
 for i=1:(lenMinData-1) %Go to the next to last because the last element will be a max to min
+%     if(abs(DATA_IN(minData(i))-DATA_IN(maxData(i)))<0.05)
+%         DATA_OUT(minData(i)+1:maxData(i+1)) = zeros(maxData(i+1)-minData(i),1)+1;
+%         continue;
+%     end
     tHalf = maxData(i+1)-minData(i);
     freq = 0.5/double(tHalf);
     t = 1:tHalf;
