@@ -1,7 +1,7 @@
 function [ T ] = imReg3D( Istin, Idyin )
 minValxy = 1e9;
 minOffsetxy = [0 0];
-trade = 0;
+tr = 0;
 
 disp('Registering xy projection images');
 
@@ -13,7 +13,7 @@ if(ssT>sdT) %We always want the bigger image to be the shifted one
     Itmp = Idyin;
     Idyin = Istin;
     Istin = Itmp;
-    trade = 1;
+    tr = 1;
     ss = size(Istin); %Recalculate sizes
     sd = size(Idyin);
 end
@@ -68,6 +68,10 @@ for m = minOffsetxy(1)-2:minOffsetxy(1)+2
 end
 
 minOffsetxy = double(minOffsetxy);
-T = [1 0 minOffsetxy(1); 0 1 minOffsetxy(2); 0 0 1]; %minOffsetxz(2) is the z transform (Ignoring for now)
+if(tr==1)
+    minOffsetxy(1)=-minOffsetxy(1);
+    minOffsetxy(2)=-minOffsetxy(2);
+end
+T = [1 0 -minOffsetxy(1); 0 1 -minOffsetxy(2); 0 0 1]; %minOffsetxz(2) is the z transform (Ignoring for now)
 end
 
