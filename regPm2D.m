@@ -1,4 +1,4 @@
-function [ del ] = regPm2D( P, Q, maxDis )
+function [ del ] = regPM2D( P, Q, maxDis )
 dxmax = 0;
 dymax = 0;
 Nmax = 0;
@@ -8,7 +8,7 @@ T = eye(3); %Translation matrix
 sp = size(P);
 sq = size(Q);
 Pp = [P; zeros(1,sp(2))+1]; %Insert an all ones row below the cell locations
-Qp = T12*Pp;%[Q; zeros(1,sq(2))+1];
+Qp = [Q; zeros(1,sq(2))+1];
 
 D = zeros(sp(2), sq(2)); %Distance matrix
 
@@ -46,6 +46,6 @@ for dx=dxmax-t:dxmax+t
         end
     end
 end
-del = [dxmax2 dymax2];
+del = [-dxmax2 -dymax2];
 end
 
