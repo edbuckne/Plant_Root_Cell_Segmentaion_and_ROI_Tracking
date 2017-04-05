@@ -93,8 +93,8 @@ for i=1:(lenMinData-1) %Go to the next to last because the last element will be 
     t = 1:tHalf;
     DATA_OUT(minData(i)+1:maxData(i+1)) = -0.5.*cos(2*pi*freq.*t)+0.5;
 end
-if(IT==1)
-    DATA_OUT = [DATA_OUT(5:end); 0; 0; 0; 0];
-end
+% if(IT==1)
+%     DATA_OUT = [DATA_OUT(5:end); 0; 0; 0; 0];
+% end
 end
 

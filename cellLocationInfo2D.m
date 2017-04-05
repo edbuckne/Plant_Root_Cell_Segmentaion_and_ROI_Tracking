@@ -69,11 +69,11 @@ mkdir segmentation
         
         
         %Create the mask image
-        I_PROJ = imfilter(I_PROJ,h,'replicate');
-        avgMI = mean(mean(I_PROJ));
-        SDMI = sqrt(var(var(I_PROJ)));
-        maskTH = avgMI-(SD_DIST*SDMI);
-        maskIm = im2bw(I_PROJ,maskTH);
+        I_PROJ = imfilter(histeq(I_PROJ),h,'replicate');
+%         avgMI = mean(mean(I_PROJ));
+%         SDMI = sqrt(var(var(I_PROJ)));
+%         maskTH = avgMI-(SD_DIST*SDMI);
+        maskIm = im2bw(I_PROJ,0.3);
         
         %Read the first image to get a size measurement
         Itmp=I3D(:,:,1);
@@ -224,18 +224,18 @@ mkdir segmentation
             
             
             if (printOPT)
-                rgbTest(T:B,L,1) = zeros(dimRows+1,1)+1; %Left Line
-                rgbTest(T:B,R,1) = zeros(dimRows+1,1)+1; %Right Line
-                rgbTest(T,L:R,1) = zeros(1,dimCols+1)+1; %Top Line
-                rgbTest(B,L:R,1) = zeros(1,dimCols+1)+1; %Bottom Line
-                rgbTest(T:B,L,2) = zeros(dimRows+1,1); %Left Line
-                rgbTest(T:B,R,2) = zeros(dimRows+1,1); %Right Line
-                rgbTest(T,L:R,2) = zeros(1,dimCols+1); %Top Line
-                rgbTest(B,L:R,2) = zeros(1,dimCols+1); %Bottom Line
-                rgbTest(T:B,L,3) = zeros(dimRows+1,1); %Left Line
-                rgbTest(T:B,R,3) = zeros(dimRows+1,1); %Right Line
-                rgbTest(T,L:R,3) = zeros(1,dimCols+1); %Top Line
-                rgbTest(B,L:R,3) = zeros(1,dimCols+1); %Bottom Line
+%                 rgbTest(T:B,L,1) = zeros(dimRows+1,1)+1; %Left Line
+%                 rgbTest(T:B,R,1) = zeros(dimRows+1,1)+1; %Right Line
+%                 rgbTest(T,L:R,1) = zeros(1,dimCols+1)+1; %Top Line
+%                 rgbTest(B,L:R,1) = zeros(1,dimCols+1)+1; %Bottom Line
+%                 rgbTest(T:B,L,2) = zeros(dimRows+1,1); %Left Line
+%                 rgbTest(T:B,R,2) = zeros(dimRows+1,1); %Right Line
+%                 rgbTest(T,L:R,2) = zeros(1,dimCols+1); %Top Line
+%                 rgbTest(B,L:R,2) = zeros(1,dimCols+1); %Bottom Line
+%                 rgbTest(T:B,L,3) = zeros(dimRows+1,1); %Left Line
+%                 rgbTest(T:B,R,3) = zeros(dimRows+1,1); %Right Line
+%                 rgbTest(T,L:R,3) = zeros(1,dimCols+1); %Top Line
+%                 rgbTest(B,L:R,3) = zeros(1,dimCols+1); %Bottom Line
                 CT = OUT_MATRIX(i+ADD_INDEX,4)-2;
                 CB = OUT_MATRIX(i+ADD_INDEX,4)+2;
                 CL = OUT_MATRIX(i+ADD_INDEX,3)-2;
