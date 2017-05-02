@@ -1,4 +1,4 @@
-function [ OUT_MATRIX ] = cellLocationInfo2D( SPM, TM, STACKS, CM, OPT, I3D, I_PROJ, TH_VAL )
+function [ OUT_MATRIX, rgbTest ] = cellLocationInfo2D( SPM, TM, STACKS, CM, OPT, I3D, I_PROJ, TH_VAL )
 %cellLocationInfo takes in the specimen number, time array, and the number
 %of z stacks.  It find the cell location information for 2 dimensions.
 %This includes the following columns:
@@ -131,15 +131,18 @@ mkdir segmentation
         
         %Finds the cells COM by finding the pixels that have a value of 1
         binImage = zeros(s);
-        cLoc = [];
+        cLoc = zeros(100000,2);
+        i=1;
         for x=1:s(2)
             for y=1:s(1)
                 if (I3(y,x)>=0.9999)
-                    cLoc = [cLoc; x y];
+                    cLoc(i,:) = [x y];
                     binImage(y,x) = 1;
+                    i=i+1;
                 end
             end
         end
+        cLoc = cLoc(1:i-1,:);
         s2 = size(cLoc); %Finds how many cells were found
         I2r = I2r.*maskIm;
         I2c = I2c.*maskIm;
@@ -151,10 +154,10 @@ mkdir segmentation
         
         
         
-        if (printOPT)
+
             rgbTest = zeros(s(1),s(2),3);
             rgbTest(:,:,1) = I.*maskIm; rgbTest(:,:,2) = I.*maskIm; rgbTest(:,:,3) = I.*maskIm;
-        end
+
         %Purge out the false positives
         testIm = zeros(s(1),s(2));
         for i=1:s2(1)

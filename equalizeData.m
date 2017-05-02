@@ -56,6 +56,8 @@ if(~(lenMaxData==lenMinData))
     maxData
     minData
     error('Minimum and Maximum arrays do not have the same amount of data points');
+elseif(lenMaxData<2)
+    return;
 end
 
 %Enter a sine wave into the newData array for each half time period

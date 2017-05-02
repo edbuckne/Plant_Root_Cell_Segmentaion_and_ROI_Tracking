@@ -46,6 +46,6 @@ for dx=dxmax-t:dxmax+t
         end
     end
 end
-del = [-dxmax2 -dymax2];
+del = [dxmax2 dymax2];
 end
 
