@@ -18,11 +18,11 @@ if~(S==1||S==(halfN+1))
 else
     if(S==1)
         dV = As(1,:)-[sI(2)/2 sI(1)/2];
-        alpha = alpha/5;
+        alpha = alpha/15;
         ddV = As(halfN+1,:)-2.*As(1,:)+As(2,:);
     elseif(S==halfN+1) %S==halfN+1
         dV = As(S,:)-[sI(2)/2 sI(1)/2];
-        alpha = alpha/5;
+        alpha = alpha/15;
         ddV = As(1,:)-2.*As(halfN+1,:)+As(halfN+2,:);
     end
 end

@@ -81,6 +81,13 @@ for i=1:IT
         Ad = As; %Create a dynamic list that can change
         Emin = acEnergy(As,s,Iexe,alpha,beta,We); %Obtain the energy of the static list
         ind = 0;
+        if (s==halfN||s==N)
+            poiN = [0 0; 1 0; 1 0; 1 0; 0 0; -1 0; -1 0; -1 0];
+        elseif (s==1||s==halfN+1)
+            poiN = [0 -1; 1 -1; 1 0; 1 1; 0 1; -1 1; -1 0; -1 -1];
+        elseif (abs(As(s,2)-As(s+1,2))>100)
+            poiN = [0 0; 1 0; 1 0; 1 0; 0 0; -1 0; -1 0; -1 0];
+        end
         for j=1:8 %Go to each neighbor
             pixMove = As(s,:)+poiN(j,:);
             if(pixMove(1)<=0 || pixMove(2)<=0 || pixMove(1)>=sI(2) || pixMove(2)>=sI(1)) %Can't go beyond the bounds of the image
