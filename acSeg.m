@@ -47,16 +47,7 @@ for s=1:Ns*2
     end
 end
 
-%Have the order stem from the bottom of the image
 N = size(As,1);
-halfN = round(N/2);
-newAs = zeros(halfN,2);
-j=halfN;
-for i=1:round(N/2)
-    newAs(i,:) = As(j,:);
-    j=j-1;
-end
-As(1:halfN,:) = newAs; %Flip the beginning
 
 % Creating the external energy image
 Ifilt = imgaussfilt(Ibfp,sigma);
@@ -68,6 +59,7 @@ maxp = max(Iexe(:));
 Iexe = Iexe./maxp;
 Ilog = 1-Iexe;
 Ilog2 = im2bw(Ilog,0.015);
+
 for x=1:sI(2)
     for y=1:sI(1)
         if(Ilog2(y,x)==0)
@@ -76,21 +68,27 @@ for x=1:sI(2)
     end
 end
 
+move = 1;
 for i=1:IT
+    if(move==0)
+        disp(['Required ' num2str(i) ' iterations to settle']);
+        break;
+    else
+        move = 0;
+    end
     for s=1:N
+        poiN = [0 -1; 1 -1; 1 0; 1 1; 0 1; -1 1; -1 0; -1 -1];
         Ad = As; %Create a dynamic list that can change
         Emin = acEnergy(As,s,Iexe,alpha,beta,We); %Obtain the energy of the static list
         ind = 0;
-        if (s==halfN||s==N)
+        if (s==1||s==N)
             poiN = [0 0; 1 0; 1 0; 1 0; 0 0; -1 0; -1 0; -1 0];
-        elseif (s==1||s==halfN+1)
-            poiN = [0 -1; 1 -1; 1 0; 1 1; 0 1; -1 1; -1 0; -1 -1];
-        elseif (abs(As(s,2)-As(s+1,2))>100)
+        elseif (sqrt((As(s,2)-As(s-1,2))^2+(As(s,1)-As(s-1,1))^2)>delPix*3)
             poiN = [0 0; 1 0; 1 0; 1 0; 0 0; -1 0; -1 0; -1 0];
         end
         for j=1:8 %Go to each neighbor
             pixMove = As(s,:)+poiN(j,:);
-            if(pixMove(1)<=0 || pixMove(2)<=0 || pixMove(1)>=sI(2) || pixMove(2)>=sI(1)) %Can't go beyond the bounds of the image
+            if(pixMove(1)<=0 || pixMove(2)<=0 || pixMove(1)>sI(2) || pixMove(2)>sI(1)) %Can't go beyond the bounds of the image
                 continue;
             end
             Ad(s,:) = pixMove;
@@ -102,20 +100,11 @@ for i=1:IT
         end
         if (ind>0) %Only if movement has occured, change the static list
             As(s,:) = As(s,:)+poiN(ind,:);
+            move = move+1;
         end
     end
     
 end
-
-%Flip the end back the way it was
-As2 = As;
-newAs = zeros(halfN,2);
-j=halfN;
-for i=1:round(N/2)
-    newAs(i,:) = As2(j,:);
-    j=j-1;
-end
-As(1:halfN,:) = newAs; %Flip the beginning
 
 if(strcmp(showStr,'show')) %Show the result only if prompted to
     figure

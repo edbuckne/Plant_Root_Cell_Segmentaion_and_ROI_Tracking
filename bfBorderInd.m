@@ -1,10 +1,5 @@
-function [ As, Imax ] = bfBorderInd( I, opt, stack )
+function [ As, Imax ] = bfBorderInd( I, alpha, beta, We, It, Np, opt, stack )
 s = size(I);
-alpha = 0.1;
-beta = 0.1;
-We = 500;
-It = 1500;
-Np = 100;
 
 %Getting the gradient image
 sigma = 6;
