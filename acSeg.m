@@ -120,7 +120,7 @@ As(1:halfN,:) = newAs; %Flip the beginning
 if(strcmp(showStr,'show')) %Show the result only if prompted to
     figure
     imshow(Ibfp);
-    line(As(:,1),As(:,2))
+    line(As(:,1),As(:,2),'linewidth',2)
 end
 end
 

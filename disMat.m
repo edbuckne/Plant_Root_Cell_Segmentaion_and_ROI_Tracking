@@ -4,12 +4,12 @@ s2 = size(seg3D2);
 
 CL1 = [seg3D1; ones(1,s1(2))]; %[seg3D1(:,2:4)'; ones(1,s1(1))];
 CL2 = [seg3D2; ones(1,s2(2))]; %[seg3D2(:,2:4)'; ones(1,s2(1))];
-CL2t = T12*CL2;
+CL1t = T12*CL1;
 D = zeros(s1(1),s2(1));
 
 for i=1:s1(2)
     for j=1:s2(2)
-        D(i,j) = sqrt((CL1(1,i)-CL2t(1,j))^2+(CL1(2,i)-CL2t(2,j))^2+(CL1(3,i)-CL2t(3,j))^2);
+        D(i,j) = sqrt((CL2(1,j)-CL1t(1,i))^2+(CL2(2,j)-CL1t(2,i))^2+(CL2(3,j)-CL1t(3,i))^2);
     end
 end
 

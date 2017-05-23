@@ -1,8 +1,9 @@
-function [ del ] = regPM2D( P, Q, maxDis )
+function [ del ] = regPM2D( P, Q, maxDis, t )
+%t is usually 5
+
 dxmax = 0;
 dymax = 0;
 Nmax = 0;
-t = 10;
 T = eye(3); %Translation matrix
 
 sp = size(P);
@@ -12,8 +13,8 @@ Qp = [Q; zeros(1,sq(2))+1];
 
 D = zeros(sp(2), sq(2)); %Distance matrix
 
-for dx=-maxDis(1):2:maxDis(1)
-    for dy=-maxDis(2):10:maxDis(2)
+for dx=-maxDis(1):t  :maxDis(1)
+    for dy=-maxDis(2):t:maxDis(2)
         T(1:2,3) = [dx; dy];
         Qi = T*Qp; %Matrix multiplication for translation matrix Tk
         for i=1:sp(2)
@@ -30,6 +31,8 @@ for dx=-maxDis(1):2:maxDis(1)
 end
 
 disp('IT2');
+dxmax2 = dxmax;
+dymax2 = dymax;
 for dx=dxmax-t:dxmax+t
     for dy=dymax-t:dymax+t
         T(1:2,3) = [dx; dy];
