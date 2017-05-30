@@ -1,12 +1,11 @@
-function [ ] = BorderRec( SPM, TM )
+function [ A ] = BorderRec( SPM, TM )
 sigma = 6;
-p=90;
+p=99;
 
 load zStacks
-mkdir ROOT_BORDER
 
-[I1,~] = microImInputRaw(SPM,TM(1),1,zStacks(TM(1))); %Take in 3D Brightfield images
-[I2,~] = microImInputRaw(SPM,TM(2),1,zStacks(TM(2)));
+[I1,~] = microImInputRaw(SPM,TM(1),2,zStacks(TM(1))); %Take in 3D Brightfield images
+[I2,~] = microImInputRaw(SPM,TM(2),2,zStacks(TM(2)));
 
 s1 = size(I1); %Size of images
 s2 = size(I2);
@@ -21,9 +20,9 @@ for z=1:s2(3)
 end
 
 %Find the percentile of the data
+data = zeros(s(1)*s(2)*s(3),1);
 
 %View 1
-data = zeros(s1(1)*s1(2)*s1(3),1);
 i=1;
 for row=1:s1(1)
     for col=1:s1(2)
@@ -35,7 +34,6 @@ for row=1:s1(1)
 end
 y1 = prctile(data,p);
 %View 2
-data = zeros(s2(1)*s2(2)*s2(3),1);
 i=1;
 for row=1:s2(1)
     for col=1:s2(2)
@@ -62,8 +60,7 @@ Ith1 = im2double(Ith1);
 Ith2 = im2double(Ith2);
 Imax1 = max(Ith1,[],3);
 Imax2 = max(Ith2,[],3);
-imwrite(Imax1,[pwd '/ROOT_BORDER/GRAD_TH_' num2str(TM(1)) '_2.tif']);
-imwrite(Imax2,[pwd '/ROOT_BORDER/GRAD_TH_' num2str(TM(2)) '_2.tif']);
+imwrite(Imax1,[pwd '/R
 
 %Create a contour for both views
 [AC1, MidLine1] = acSeg(Imax1,'show');
