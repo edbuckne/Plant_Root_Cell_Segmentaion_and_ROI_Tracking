@@ -22,7 +22,7 @@ for row=1:s(1)
     end
 end
 
-p=99.5;
+p=99;
 y = prctile(data,p);
 
 %Threshold the image with the percentile
@@ -39,7 +39,8 @@ Imax = max(Ith,[],3);
 As = acSeg(Imax,Np,alpha,beta,We,It,'none');
 if(strcmp(opt,'show')) %Print if user indicated
     figure
-    imshow(I(:,:,stack))
+%     imshow(I(:,:,stack))
+    imshow(Imax);
     line(As(:,1),As(:,2),'linewidth',2)
 end
 end

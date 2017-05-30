@@ -1,5 +1,6 @@
 function [ Etot,dVmag,ddVmag ] = acEnergy( As, S, Iexe, alpha, beta, We )
 N = size(As,1);
+sIm = size(Iexe);
 WeM = 100000;
 
 %Internal Energy
