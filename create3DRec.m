@@ -13,6 +13,8 @@ count = 0;
 for i=maxY1:-1:1
     if(count>sMid2(2))
         break;
+    elseif(i>sMid2(2))
+        continue;
     else
         AC1(3,maxY1-count)=MidLine2(1,i);
         AC1(3,maxY1+count)=MidLine2(1,i);
@@ -39,9 +41,12 @@ end
 AC2(3,1) = AC2(3,2);
 AC2(3,end) = AC2(3,end-1);
 
-figure
-plot3(AC1(1,:),AC1(3,:),maxY1-AC1(2,:));
-hold on
-plot3(AC2(3,:),AC2(1,:),maxY2-AC2(2,:));
+AC1(2,:) = maxY1-AC1(2,:);
+AC2(2,:) = maxY2-AC2(2,:);
+
+% figure
+% plot3(AC1(1,:),AC1(3,:),AC1(2,:));
+% hold on
+% plot3(AC2(3,:),AC2(1,:),AC2(2,:));
 end
 

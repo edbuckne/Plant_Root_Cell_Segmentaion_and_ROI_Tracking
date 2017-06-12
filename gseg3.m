@@ -8,27 +8,28 @@ R = 10; %Radius of settling basin
 
 s = size(I);
 
-I3filt = zeros(s);
-I3Gmag = zeros(s);
-I3Gdir = zeros(s);
-I3Gmagy = zeros(s(3),s(2),s(1));
-I3Gdiry = zeros(s(3),s(2),s(1));
+
 trailM = int16(zeros(s(1).*s(2),1)); %Vector that tells which trails belong to which regions
-regIm = zeros(s); %Final image that will contain the segmented regions
-Ibw = zeros(s); %Mask for activity regions
+
+
 Ilog = zeros(s); %Holds the region settling areas and trails
 CL = zeros(5000, 9); %Matrix that holds the cell location information
 
 %Filter each z stack with a Gaussian convolution from the given variance
 %sigma
 disp('Filtering 3D image')
+
+I3Gmag = zeros(s);
+I3Gdir = zeros(s);
 for z=1:s(3)
-    I3filt(:,:,z) = imgaussfilt(I(:,:,z),sigma);
-    [I3Gmag(:,:,z), I3Gdir(:,:,z)] = imgradient(I3filt(:,:,z),'sobel');
+    I(:,:,z) = imgaussfilt(I(:,:,z),sigma);
+    [I3Gmag(:,:,z), I3Gdir(:,:,z)] = imgradient(I(:,:,z),'sobel');
 end
 
-Ixz = yStacks(I3filt); %Create orthogonal view images of I in order to get the gradient in the z direciton
+Ixz = yStacks(I); %Create orthogonal view images of I in order to get the gradient in the z direciton
 disp('Getting gradient in z direction');
+I3Gmagy = zeros(s(3),s(2),s(1));
+I3Gdiry = zeros(s(3),s(2),s(1));
 for y=1:s(1)
     [I3Gmagy(:,:,y), I3Gdiry(:,:,y)] = imgradient(Ixz(:,:,y),'sobel');
 end
@@ -36,9 +37,16 @@ end
 Gmagz = yStacks(I3Gmagy); %Undo the orthogonal operator for the gradient
 Gdirz = yStacks(I3Gdiry);
 
+clear I3Gmagy
+clear I3Gdiry
+
 Gx = I3Gmag.*cosd(I3Gdir); %Calculates the gradient values for x, y, and z
 Gy = -1.*I3Gmag.*sind(I3Gdir);
 Gz = -1.*Gmagz.*sind(Gdirz);
+
+clear I3Gmag
+clear I3Gdir
+
 
 Xs = zeros(s(1),s(2)); %Xs, Ys, and Zs are used for creating the radius
 Ys = zeros(s(1),s(2));
@@ -49,15 +57,16 @@ for row=1:s(1)
     end
 end
 
+Ibw = zeros(s); %Mask for activity regions
 disp('Thresholding images');
 for z=1:s(3)
-    Ibw(:,:,z) = im2bw(I3filt(:,:,z),TH); %Thresholding the image to mask only activity in the GFP channel
+    Ibw(:,:,z) = im2bw(I(:,:,z),TH); %Thresholding the image to mask only activity in the GFP channel
 end
 xStep = Kp.*Gx.*Ibw; %Proportional gradients
 yStep = Kp.*Gy.*Ibw;
 
 disp('Finding cell locations by regional maximum locations');
-Ilog1 = imregionalmax3(I3filt).*Ibw; %Finds local maximums of a 3D image
+Ilog1 = imregionalmax3(I).*Ibw; %Finds local maximums of a 3D image
 
 disp('Creating settling regions');
 for z=1:s(3) %Going through each element in the logical image and adding disks
@@ -86,6 +95,8 @@ CL(:,4) = CL(:,1); %This is so we can find minimums
 CL(:,6) = CL(:,2);
 CL(:,8) = CL(:,3);
 
+
+regIm = zeros(s); %Final image that will contain the segmented regions
 disp('Segmenting regions');
 for z=1:s(3) %Going through each element in the proportional gradient matrices
     for row=1:s(1)
@@ -112,9 +123,9 @@ for z=1:s(3) %Going through each element in the proportional gradient matrices
                         delz=0;
                     end
                 elseif(zd==s(3))
-                    delz = double((I3filt(yd,xd,zd)-I3filt(yd,xd,zd-1))<0)*(-1); %Gradient is 0 or negative
+                    delz = double((I(yd,xd,zd)-I(yd,xd,zd-1))<0)*(-1); %Gradient is 0 or negative
                 else %zd has to be 1
-                    delz = double((I3filt(yd,xd,zd+1)-I3filt(yd,xd,zd))>0); %Gradient is 0 or positive
+                    delz = double((I(yd,xd,zd+1)-I(yd,xd,zd))>0); %Gradient is 0 or positive
                 end
                 
                 if(abs(delx)<1) %Proportional x step

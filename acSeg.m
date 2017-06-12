@@ -1,4 +1,4 @@
-function [ AClist, MidLine ] = acSeg( I, showStr )
+function [ AClist, MidLine, maxX1 ] = acSeg( I, showStr )
 %Takes in an image, and a string.  Returns the border contour of the image
 %and the midline of the left and right of the contour.
 
