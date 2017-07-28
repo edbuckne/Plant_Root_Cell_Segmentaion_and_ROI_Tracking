@@ -5,9 +5,20 @@ Kp = 100; %Proportional constant
 sec = -1; %Sections
 trailId = 1; %Starting trail Id at 1
 R = 10; %Radius of settling basin
+largeIm = 0;
 
 s = size(I);
-
+if(s(1)>1200)&&(s(2)>1200)
+    warning('Image too big, resizing');
+    largeIm = 1;
+    I2 = zeros(round(s(1)/2),round(s(2)/2),s(3));
+    for z=1:s(3)
+        I2(:,:,z) = imresize(I(:,:,z),[round(s(1)/2),round(s(2)/2)]);
+    end
+    I = I2;
+    clear I2
+    s = size(I);
+end
 
 trailM = int16(zeros(s(1).*s(2),1)); %Vector that tells which trails belong to which regions
 
@@ -192,5 +203,10 @@ disp('Finalizing region image');
 maxp = max(regIm,[],3);
 maxp = max(maxp(:));
 regIm = im2double(regIm)./maxp;
+
+if(largeIm)
+    CL(1:2) = CL(1:2).*2;
+    CL(4:7) = CL(4:7).*2;
+end
 end
 

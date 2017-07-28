@@ -33,34 +33,34 @@ if(item<=0)
     ylabel('microns^3');
 else
     while(child)
-        statsArray = [statsArray; clInfo(i,10) shapeInfo(i,1:3) shapeInfo(i,8) shapeInfo(i,10)]; %Store the roi statistics
+        statsArray = [statsArray; clInfo(i,10) shapeInfo(i,1:3) shapeInfo(i,8) shapeInfo(i,9)]; %Store the roi statistics
         
         i = PC(i,1); %Get the index of the next time stamp
         if(i==0)
             child=0;
         end
     end
-    figure
+    figure(1)
     hold on
     title(['Average pixel intensity for ROI ' num2str(item)])
     plot(statsArray(:,1),statsArray(:,5));
     xlabel('Time stamp');
     ylabel('pixel intensity (0-1)');
-    figure
-    hold on
-    title(['Total volume affected by ROI ' num2str(item)]);
-    plot(statsArray(:,1),statsArray(:,6));
-    xlabel('Time stamp');
-    ylabel('microns^3');
-    figure
-    hold on
-    title(['Variance spread in 3D for ROI ' num2str(item)]);
-    plot(statsArray(:,1),statsArray(:,2));
-    plot(statsArray(:,1),statsArray(:,3));
-    plot(statsArray(:,1),statsArray(:,4));
-    xlabel('Time stamp');
-    ylabel('Varience');
-    legend('Var X','Var Y', 'Var X');
+%     figure
+%     hold on
+%     title(['Total volume affected by ROI ' num2str(item)]);
+%     plot(statsArray(:,1),statsArray(:,6));
+%     xlabel('Time stamp');
+%     ylabel('microns^3');
+%     figure
+%     hold on
+%     title(['Variance spread in 3D for ROI ' num2str(item)]);
+%     plot(statsArray(:,1),statsArray(:,2));
+%     plot(statsArray(:,1),statsArray(:,3));
+%     plot(statsArray(:,1),statsArray(:,4));
+%     xlabel('Time stamp');
+%     ylabel('Varience');
+%     legend('Var X','Var Y', 'Var X');
 end
 
 end

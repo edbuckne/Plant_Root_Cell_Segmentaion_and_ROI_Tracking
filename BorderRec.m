@@ -1,15 +1,21 @@
-function [ AC11, AC22, AC1, AC2 ] = BorderRec( SPM, TM, VIEW )
+function [ AC11, AC22, AC1, AC2 ] = BorderRec( TM, VIEW )
+%Creates the maximum gradient projection and sends it to the simplified
+%active contour segmentation algorithm.  It also return the modified
+%contours and the original contours.
+
 sigma = 6;
+CM = 2;
 p=99;
 
-load zStacks
+load('zStacks')
+load('data_config')
 mkdir ROOT_BORDER
 
-viewN = length(VIEW);
+viewN = VIEW;
 
-[I1,~] = microImInputRaw(SPM,TM,2,zStacks(TM),1); %Take in 3D Brightfield images
+[I1,~] = microImInputRaw(spm,TM,CM,1); %Take in 3D Brightfield images
 if(viewN==2)
-    [I2,~] = microImInputRaw(SPM,TM,2,zStacks(TM),2);
+    [I2,~] = microImInputRaw(spm,TM,CM,2);
 elseif(viewN==1)
     I2 = I1; %Just duplicate the first view if we don't have a second one
 else
