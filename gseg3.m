@@ -154,11 +154,22 @@ for z=1:s(3) %Going through each element in the proportional gradient matrices
                 yd = yd+dely;
                 zd = zd+delz;
                 
+                if(yd>s(1)||yd<1||xd>s(2)||xd<1||zd>s(3)||zd<1) %Check if dynamic pointer goes outside of image
+                    break;
+                end
                 if(Ibw(yd,xd,zd)==0) %If the dynamic pixel drifts out of the mask image
                     break;
                 end
             end
 
+            if(yd>s(1)||yd<1||xd>s(2)||xd<1||zd>s(3)||zd<1) %Check if dynamic pointer goes outside of image
+                disV = sqrt((CL(:,1)-col).^2+(CL(:,2)-row).^2+(CL(:,3).*xzrat-z*xzrat).^2); %Distance from COM locations
+                [~,location] = min(disV);
+                trailM(trailId) = -location;
+                regIm(row,col,z) = -1*trailM(trailId); %Store in region Image
+                trailId = trailId+1;
+                continue;
+            end
             if(Ibw(yd,xd,zd)==0||Ilog(yd,xd,zd)==trailId)
                 disV = sqrt((CL(:,1)-col).^2+(CL(:,2)-row).^2+(CL(:,3).*xzrat-z*xzrat).^2); %Distance from COM locations
                 [~,location] = min(disV);

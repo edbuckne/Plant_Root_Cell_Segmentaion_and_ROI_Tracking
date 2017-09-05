@@ -5,7 +5,7 @@ function [ AC11, AC22, AC1, AC2 ] = BorderRec( TM, VIEW )
 
 sigma = 6;
 CM = 2;
-p=99;
+p=95;
 
 load('zStacks')
 load('data_config')

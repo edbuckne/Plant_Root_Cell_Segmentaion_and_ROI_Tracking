@@ -148,10 +148,10 @@ clInfo = []; %Holds the information concerning the activity location
 zStacks = zeros(tmEnd-tmStart+1,3);
 timeArray = zeros(tmEnd-tmStart+1,2);
 
-sigma = 8;
+sigma = 4;
 
 for t=tmStart:tmEnd
-    t
+    disp(['Time Stamp: ' num2str(t)]);
     tmStr = num2str(t,'%.4u'); %Create a new directory to put the segmented images in
     mkdir([pwd '/3D_SEG/SPM' num2str(spm,'%.2u') '/TM' tmStr]);
     
@@ -286,10 +286,8 @@ mkdir ROOT_BORDER
 load('data_config')
 viewN = input('Enter the number of orthogonal Brightfield views: ');
 
-spm = 1;
-
 for t=tmStart:tmEnd
-    t
+disp(['Time stamp: ' num2str(t)]);
 OutputPath = [pwd '/ROOT_BORDER/AC_Multiview_Info_TM' num2str(t,'%.4u')];
 
 [ACV1,ACV2,ACRAWV1,ACRAWV2] = BorderRec(t,viewN);
