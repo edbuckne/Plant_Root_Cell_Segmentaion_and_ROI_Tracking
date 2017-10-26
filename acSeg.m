@@ -21,6 +21,12 @@ for h=1:height
         break;
     end
 end
+if(h<20) %If the contour comes back blank or very small
+    AClist = [];
+    MidLine = [];
+    maxX1 = [];
+    return
+end
 left = left(1:h-1,:);
 
 for w=1:height
@@ -30,6 +36,12 @@ for w=1:height
     if(right(w,1)==1)
         break;
     end
+end
+if(h<20) %If the contour comes back blank or very small
+    AClist = [];
+    MidLine = [];
+    maxX1 = [];
+    return
 end
 right = right(1:w-1,:);
 

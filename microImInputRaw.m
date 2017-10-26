@@ -21,6 +21,12 @@ function [ I, zNum ] = microImInputRaw( SPM, TM, CM, VIEW )
         for z=1:zNum %Obtain each image
             I(:,:,z) = im2double(imread([pwd fileName],z));
         end
+    elseif exist([pwd '/TM' TMstr '/TM' TMstr '_CM' CMstr '_v' VIEWstr '.tif'],'file')
+        fileName = ['/TM' TMstr '/TM' TMstr '_CM' CMstr '_v' VIEWstr '.tif']; %Path to raw images
+        zNum = size(imfinfo([pwd fileName]),1); %Get the number of zStacks
+        for z=1:zNum %Obtain each image
+            I(:,:,z) = im2double(imread([pwd fileName],z));
+        end
     else
         error('Image does not exist or you are not in the home directory');
     end

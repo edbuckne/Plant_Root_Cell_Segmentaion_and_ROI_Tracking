@@ -8,6 +8,12 @@ for i=2:y
 end
  
 psi=muX*totDis;
+if(y<=0)
+    psi = NaN;
+    rho = NaN;
+    ang = NaN;
+    return;
+end
 Sx = S(y+1,1);
 Sy = S(y+1,2);
  

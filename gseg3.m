@@ -1,4 +1,11 @@
 function [ regIm, CL ] = gseg3( I, TH, sigma, xzrat )
+%gseg3 is a function that segments all voxels above the pixel intensity of
+%TH (double value). Sigma is the standard deviation used in the gaussian
+%kernel filter.  xzrat is the ratio between the zStack physical step and
+%the xy physical step in the images.  I is the image to be segmented.  The
+%segmentation method used here is gradient decent, with a movement rate of
+%Kp, defined below is usually 100.
+
 %sigma=8 is default value
 %TH=0.15 is default value
 Kp = 100; %Proportional constant
@@ -7,35 +14,46 @@ trailId = 1; %Starting trail Id at 1
 R = 10; %Radius of settling basin
 largeIm = 0;
 
+%Find size of the image and resize if it is too big
 s = size(I);
-if(s(1)>1200)&&(s(2)>1200)
-    warning('Image too big, resizing');
-    largeIm = 1;
-    I2 = zeros(round(s(1)/2),round(s(2)/2),s(3));
-    for z=1:s(3)
-        I2(:,:,z) = imresize(I(:,:,z),[round(s(1)/2),round(s(2)/2)]);
-    end
-    I = I2;
-    clear I2
-    s = size(I);
-end
-
-trailM = int16(zeros(s(1).*s(2),1)); %Vector that tells which trails belong to which regions
+% if(s(1)>1200)&&(s(2)>1200)
+%     warning('Image too big, resizing');
+%     largeIm = 1;
+%     I2 = zeros(round(s(1)/2),round(s(2)/2),s(3));
+%     for z=1:s(3)
+%         I2(:,:,z) = imresize(I(:,:,z),[round(s(1)/2),round(s(2)/2)]);
+%     end
+%     I = I2;
+%     clear I2
+%     s = size(I);
+% end
 
 
-Ilog = zeros(s); %Holds the region settling areas and trails
 CL = zeros(5000, 9); %Matrix that holds the cell location information
 
 %Filter each z stack with a Gaussian convolution from the given variance
 %sigma
 disp('Filtering 3D image')
 
-I3Gmag = zeros(s);
-I3Gdir = zeros(s);
+%Getting the gradient magnitudes and directions
+% I3Gmag = zeros(s);
+% I3Gdir = zeros(s);
+Gx = zeros(s);
+Gy = zeros(s);
 for z=1:s(3)
     I(:,:,z) = imgaussfilt(I(:,:,z),sigma);
-    [I3Gmag(:,:,z), I3Gdir(:,:,z)] = imgradient(I(:,:,z),'sobel');
+%     [I3Gmag(:,:,z), I3Gdir(:,:,z)] = imgradient(I(:,:,z),'sobel');
+    [GmagTmp, GdirTmp] = imgradient(I(:,:,z),'sobel');
+    Gx(:,:,z) = GmagTmp.*cosd(GdirTmp);
+    Gy(:,:,z) = -1.*GmagTmp.*sind(GdirTmp);
 end
+clear GmagTmp
+clear GdirTmp
+% Gx = I3Gmag.*cosd(I3Gdir); %Calculates the gradient values for x, y, and z
+% Gy = -1.*I3Gmag.*sind(I3Gdir);
+
+% clear I3Gmag
+% clear I3Gdir
 
 Ixz = yStacks(I); %Create orthogonal view images of I in order to get the gradient in the z direciton
 disp('Getting gradient in z direction');
@@ -44,23 +62,20 @@ I3Gdiry = zeros(s(3),s(2),s(1));
 for y=1:s(1)
     [I3Gmagy(:,:,y), I3Gdiry(:,:,y)] = imgradient(Ixz(:,:,y),'sobel');
 end
+clear Ixz
 
 Gmagz = yStacks(I3Gmagy); %Undo the orthogonal operator for the gradient
-Gdirz = yStacks(I3Gdiry);
-
 clear I3Gmagy
+Gdirz = yStacks(I3Gdiry);
 clear I3Gdiry
 
-Gx = I3Gmag.*cosd(I3Gdir); %Calculates the gradient values for x, y, and z
-Gy = -1.*I3Gmag.*sind(I3Gdir);
 Gz = -1.*Gmagz.*sind(Gdirz);
+clear Gmagz
+clear Gdirz
 
-clear I3Gmag
-clear I3Gdir
 
-
-Xs = zeros(s(1),s(2)); %Xs, Ys, and Zs are used for creating the radius
-Ys = zeros(s(1),s(2));
+Xs = im2uint16(zeros(s(1),s(2))); %Xs, Ys, and Zs are used for creating the radius
+Ys = im2uint16(zeros(s(1),s(2)));
 for row=1:s(1)
     for col=1:s(2)
         Xs(row,col) = col;
@@ -75,32 +90,55 @@ for z=1:s(3)
 end
 xStep = Kp.*Gx.*Ibw; %Proportional gradients
 yStep = Kp.*Gy.*Ibw;
+clear Gx
+clear Gy
 
 disp('Finding cell locations by regional maximum locations');
 Ilog1 = imregionalmax3(I).*Ibw; %Finds local maximums of a 3D image
 
 disp('Creating settling regions');
-for z=1:s(3) %Going through each element in the logical image and adding disks
-    for row=1:s(1)
-        for col=1:s(2)
-            if(Ilog1(row,col,z)==1) %If this is the location of a local maximum                
-                if~(Ilog(row,col,z)==0) %If the pixel is already assigned to a settling region
-                    continue; %Ignore it
-                end
-                CL((-sec),1:3) = [col, row, z]; %Store cell COM location
-                Irg = im2double(sqrt((col-Xs).^2+(row-Ys).^2)<R); 
-                Ilog(:,:,z) = Ilog(:,:,z) + Irg.*im2double(Ilog(:,:,z)==0).*sec; %Inserting a disk
-                if~(z==1)
-                    Ilog(:,:,z-1) = Ilog(:,:,z-1) + Irg.*im2double(Ilog(:,:,z-1)==0).*sec; %Inserting a disk
-                end
-                if~(z==s(3))
-                    Ilog(:,:,z+1) = Ilog(:,:,z+1) + Irg.*im2double(Ilog(:,:,z+1)==0).*sec; %Inserting a disk
-                end
-                sec = sec-1;
-            end
+Ilog = zeros(s); %Holds the region settling areas and trails
+for z=1:s(3) %Look at each individual z stack's activity
+    [r,c] = find(Ilog1(:,:,z)==1); %Find all regional maximums in this z stack
+    for i=1:length(r)
+        if~(Ilog(r(i),c(i),z)==0) %If the pixel is already assigned to a settling region
+            continue; %Ignore it
         end
+        CL((-sec),1:3) = [c(i), r(i), z]; %Store cell COM location
+        Irg = im2double(sqrt((c(i)-double(Xs)).^2+(r(i)-double(Ys)).^2)<R);
+        Ilog(:,:,z) = Ilog(:,:,z) + Irg.*im2double(Ilog(:,:,z)==0).*sec; %Inserting a disk
+        if~(z==1)
+            Ilog(:,:,z-1) = Ilog(:,:,z-1) + Irg.*im2double(Ilog(:,:,z-1)==0).*sec; %Inserting a disk
+        end
+        if~(z==s(3))
+            Ilog(:,:,z+1) = Ilog(:,:,z+1) + Irg.*im2double(Ilog(:,:,z+1)==0).*sec; %Inserting a disk
+        end
+        sec = sec-1;
     end
 end
+% for z=1:s(3) %Going through each element in the logical image and adding disks
+%     for row=1:s(1)
+%         for col=1:s(2)
+%             if(Ilog1(row,col,z)==1) %If this is the location of a local maximum                
+%                 if~(Ilog(row,col,z)==0) %If the pixel is already assigned to a settling region
+%                     continue; %Ignore it
+%                 end
+%                 CL((-sec),1:3) = [col, row, z]; %Store cell COM location
+%                 Irg = im2double(sqrt((col-double(Xs)).^2+(row-double(Ys)).^2)<R); 
+%                 Ilog(:,:,z) = Ilog(:,:,z) + Irg.*im2double(Ilog(:,:,z)==0).*sec; %Inserting a disk
+%                 if~(z==1)
+%                     Ilog(:,:,z-1) = Ilog(:,:,z-1) + Irg.*im2double(Ilog(:,:,z-1)==0).*sec; %Inserting a disk
+%                 end
+%                 if~(z==s(3))
+%                     Ilog(:,:,z+1) = Ilog(:,:,z+1) + Irg.*im2double(Ilog(:,:,z+1)==0).*sec; %Inserting a disk
+%                 end
+%                 sec = sec-1;
+%             end
+%         end
+%     end
+% end
+clear Ilog1
+
 CL = CL(1:(-sec)-1,:);
 CL(:,4) = CL(:,1); %This is so we can find minimums
 CL(:,6) = CL(:,2);
@@ -108,6 +146,7 @@ CL(:,8) = CL(:,3);
 
 
 regIm = zeros(s); %Final image that will contain the segmented regions
+trailM = int16(zeros(s(1).*s(2),1)); %Vector that tells which trails belong to which regions
 disp('Segmenting regions');
 for z=1:s(3) %Going through each element in the proportional gradient matrices
     for row=1:s(1)
@@ -173,7 +212,7 @@ for z=1:s(3) %Going through each element in the proportional gradient matrices
             if(Ibw(yd,xd,zd)==0||Ilog(yd,xd,zd)==trailId)
                 disV = sqrt((CL(:,1)-col).^2+(CL(:,2)-row).^2+(CL(:,3).*xzrat-z*xzrat).^2); %Distance from COM locations
                 [~,location] = min(disV);
-                trailM(trailId) = -location;
+                trailM(trailId) = -location(1);
                 regIm(row,col,z) = -1*trailM(trailId); %Store in region Image
                 trailId = trailId+1;
                 continue;
@@ -216,8 +255,8 @@ maxp = max(maxp(:));
 regIm = im2double(regIm)./maxp;
 
 if(largeIm)
-    CL(1:2) = CL(1:2).*2;
-    CL(4:7) = CL(4:7).*2;
+    CL(:,1:2) = CL(:,1:2).*2;
+    CL(:,4:7) = CL(:,4:7).*2;
 end
 end
 

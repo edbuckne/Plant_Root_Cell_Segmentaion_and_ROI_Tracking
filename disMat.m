@@ -5,7 +5,7 @@ s2 = size(seg3D2);
 CL1 = [seg3D1; ones(1,s1(2))]; %[seg3D1(:,2:4)'; ones(1,s1(1))];
 CL2 = [seg3D2; ones(1,s2(2))]; %[seg3D2(:,2:4)'; ones(1,s2(1))];
 CL1t = T12*CL1;
-D = zeros(s1(1),s2(1));
+D = zeros(s1(2),s2(2));
 
 for i=1:s1(2)
     for j=1:s2(2)

@@ -111,63 +111,58 @@ for t=tmStart:tmEnd
 
     toc
 end
-%%
-% %% 3D segmentation - obsolete (replaced with function BVTseg3d
-% %This section looks at each set of GFP images and segments the regions
-% clear all
-% 
-% mkdir 3D_SEG
-% load('data_config');
-% disp('Segmenting GFP cluster information');
-% clInfo = []; %Holds the information concerning the activity location 
-% zStacks = zeros(tmEnd-tmStart+1,3);
-% timeArray = zeros(tmEnd-tmStart+1,2);
-% 
-% sigma = 2; %Variance used to filter the images
-% 
-% for t=tmStart:tmEnd
-%     disp(['Time Stamp: ' num2str(t)]);
-%     tmStr = num2str(t,'%.4u'); %Create a new directory to put the segmented images in
-%     mkdir([pwd '/3D_SEG/SPM' num2str(spm,'%.2u') '/TM' tmStr]);
-%     
-%     [I,zNum] = microImInputRaw(spm,t,1,1); %Get the images
-%     zStacks(t,:) = [size(I,1) size(I,2) zNum];
-%     
-%     %Spread pixel values if the image is low contrast
-%     if(sprd==1)
-%         I = I-minp;
-%         I = I./maxp;
-%     end
-%     
-%     [Ireg,CL] = gseg3(I,TH(t),sigma,xyratz); %Segment the regions
-%     CLnum = size(CL);
-%     clInfo = [clInfo; CL zeros(CLnum(1),1)+t];
-%     timeArray(t,:) = [size(clInfo,1)-size(CL,1)+1 size(clInfo,1)];
-%     for z=1:zStacks(t,3)
-%         imwrite(Ireg(:,:,z),[pwd '/3D_SEG/SPM' num2str(spm,'%.2u') '/TM' tmStr '/SEG_IM.tif'],'writemode','append');
-%     end
-% end
-% save([pwd '/3D_SEG/SPM' num2str(spm,'%.2u') '/cell_location_information'],'clInfo','timeArray');
-% save('zStacks','zStacks');
+%% 3D segmentation
+%This section looks at each set of GFP images and segments the regions
+clear all
+
+mkdir 3D_SEG
+load('data_config');
+disp('Segmenting GFP cluster information');
+clInfo = []; %Holds the information concerning the activity location 
+zStacks = zeros(tmEnd-tmStart+1,3);
+timeArray = zeros(tmEnd-tmStart+1,2);
+
+sigma = 2; %Variance used to filter the images
+
+for t=tmStart:tmEnd
+    disp(['Time Stamp: ' num2str(t)]);
+    tmStr = num2str(t,'%.4u'); %Create a new directory to put the segmented images in
+    mkdir([pwd '/3D_SEG/SPM' num2str(spm,'%.2u') '/TM' tmStr]);
+    
+    [I,zNum] = microImInputRaw(spm,t,1,1); %Get the images
+    zStacks(t,:) = [size(I,1) size(I,2) zNum];
+    
+    %Spread pixel values if the image is low contrast
+    if(sprd==1)
+        I = I-minp;
+        I = I./maxp;
+    end
+    
+    [Ireg,CL] = gseg3(I,TH(t),sigma,xyratz); %Segment the regions
+    CLnum = size(CL);
+    clInfo = [clInfo; CL zeros(CLnum(1),1)+t];
+    timeArray(t,:) = [size(clInfo,1)-size(CL,1)+1 size(clInfo,1)];
+    for z=1:zStacks(t,3)
+        imwrite(Ireg(:,:,z),[pwd '/3D_SEG/SPM' num2str(spm,'%.2u') '/TM' tmStr '/SEG_IM.tif'],'writemode','append');
+    end
+end
+save([pwd '/3D_SEG/SPM' num2str(spm,'%.2u') '/cell_location_information'],'clInfo','timeArray');
+save('zStacks','zStacks');
 %%
 %This section obtains the shape information from the image regions
 clear all
 
 load('data_config');
-
-spm = input('Which specimen do you want to measure? ');
-cd(['SPM' num2str(spm,'%.2u')]);
-
 load('zStacks');
 
-load('cell_location_information');
+load([pwd '/3D_SEG/SPM' num2str(spm,'%.2u') '/cell_location_information']);
 sCL = size(clInfo);
 shapeInfo = zeros(sCL(1),9);
 statsTot = zeros(tmEnd-tmStart-1,4);
 
 disp('Doing mathematical shape representation of each cluster');
 for t=tmStart:tmEnd
-    disp(['Collecting information from time ' num2str(t) ' of ' num2str(tmEnd)])
+    t
     timeTot = 0;
     timeTotCount = 0;
     tmStr = num2str(t,'%.4u');
@@ -238,8 +233,8 @@ for t=tmStart:tmEnd
     end
     statsTot(t,:) = [timeTotCount timeTot/timeTotCount timeTot timeTotCount*(2*xPix+zPix)]; %Total voxels effected, total average, total sum
 end
-save('shape_info','shapeInfo','statsTot');
-cd ..
+mkdir SHAPE_INFO
+save([pwd '/SHAPE_INFO/shape_info'],'shapeInfo','statsTot');
 
 %% Obtaining spread scores
 clear all
@@ -250,7 +245,7 @@ load('SHAPE_INFO/shape_info');
 
 spreadScore = zeros(size(clInfo,1),1);
 
-for t = tmStart:tmEnd
+for t = tmStart:tmEnd;
 [m_xyz,s_xyz] = Gaussian_ML_estimate(clInfo(timeArray(t,1):timeArray(t,2),1:3)'); %Maximum likelihood parameter estimation
 
 for i=timeArray(t,1):timeArray(t,2)
@@ -262,7 +257,7 @@ varSS = var(spreadScore);
 spreadScore = (spreadScore-meanSS)./(sqrt(varSS));
 save('spreadScore','spreadScore')
 
-%% Machine Learning rejection (Fe-minus)
+%% Machine Learning rejection (Fe-minus) (NOT FINISHED)
 clear all
 
 load('data_config');
@@ -296,7 +291,6 @@ save('SHAPE_INFO/shape_info','shapeInfo');
 
 i=1;
 timeArray = zeros(tmEnd-tmStart+1,2);
-s=size(clInfo);
 for t=tmStart:tmEnd
     timeArray(t,1) = i; %The beginning pointer of this time stamp
     while(clInfo(i,10)==t && i<s(1))
@@ -309,16 +303,15 @@ for t=tmStart:tmEnd
     end
 end
 
+
 save('3D_SEG/SPM01/cell_location_information','clInfo','timeArray');
+%FIX TIMEARRAY HERE!!!%
 
 %%
 %This section is used for when there are 90 degree views of the specimen
 %defined as view 1 and view 2 in the nomenclature.
-load('data_config')
-spm = input('Name the specimen you want to outline: ');
-cd(['SPM' num2str(spm,'%.2u')]);
-
 mkdir ROOT_BORDER
+load('data_config')
 viewN = input('Enter the number of orthogonal Brightfield views: ');
 
 for t=tmStart:tmEnd
@@ -328,18 +321,13 @@ OutputPath = [pwd '/ROOT_BORDER/AC_Multiview_Info_TM' num2str(t,'%.4u')];
 [ACV1,ACV2,ACRAWV1,ACRAWV2] = BorderRec(t,viewN);
 save(OutputPath,'ACV1','ACV2','ACRAWV1','ACRAWV2')
 end
-cd ..
 %% Point matching image registration
-load data_config
-
-spm = input('Which specimen to you want to track? ');
-cd(['SPM' num2str(spm,'%.2u')]);
-
 maxDis = zeros(1,3);
 maxDis(1) = input('What is the max shift distance in the x direction? ');
 maxDis(2) = input('What is the max shift distance in the y direction? ');
 maxDis(3) = input('What is the max shift distance in the z direction? ');
 
+load data_config
 load zStacks
 %This section takes the points and executes the point matching image
 %registration algorithm
@@ -349,7 +337,7 @@ CPtostart = 1;
 CPtoend = 0;
 r = 5;
 
-load('cell_location_information.mat'); %load the cell location information
+load([pwd '/3D_SEG/SPM' num2str(spm,'%.2u') '/cell_location_information.mat']); %load the cell location information
 % load([pwd '/ROOT_BORDER/Active_Contour_Points.mat']);
 
 sCL = size(clInfo);
@@ -381,47 +369,44 @@ for t=tmStart+1:tmEnd
     
 end
 
-save('delta_set','delSet');
-cd ..
+mkdir IMAGE_REGISTRATION
+save([pwd '/IMAGE_REGISTRATION/delta_set'],'delSet');
 
 %%
 %Tracking information
 clear all
-load('data_config');
-spm = input('Which specimen do you want to track? ');
-cd(['SPM' num2str(spm,'%.2u')]);
 
 load('zStacks');
-load('cell_location_information.mat'); %Get the cell information
-load('delta_set'); %Image registration data
+load('data_config');
+load([pwd '/3D_SEG/SPM' num2str(spm,'%.2u') '/cell_location_information.mat']); %Get the cell information
+load([pwd '/IMAGE_REGISTRATION/delta_set']); %Image registration data
+
+mkdir TRACKING
 
 T = eye(4);
 THDist = 40;
 i = 1;
 s = size(clInfo);
 
-% timeArray = zeros(tmEnd-tmStart+1,2); %This holds the time separation info of clInfo 
+timeArray = zeros(tmEnd-tmStart+1,2); %This holds the time separation info of clInfo 
 PC = zeros(s(1),2); %holds the parent/child relationships and their distances
 PC2 = zeros(s(1),2); %holds the parent/child relationships and their distances
 
-% for t=tmStart:tmEnd
-%     timeArray(t,1) = i; %The beginning pointer of this time stamp
-%     while(clInfo(i,10)==t && i<s(1))
-%         i=i+1; %Increment i to continue looking for the end of this time stamp
-%     end
-%     if~(i==s(1))
-%         timeArray(t,2) = i-1;
-%     else
-%         timeArray(t,2) = i;
-%     end
-% end
+for t=tmStart:tmEnd
+    timeArray(t,1) = i; %The beginning pointer of this time stamp
+    while(clInfo(i,10)==t && i<s(1))
+        i=i+1; %Increment i to continue looking for the end of this time stamp
+    end
+    if~(i==s(1))
+        timeArray(t,2) = i-1;
+    else
+        timeArray(t,2) = i;
+    end
+end
 
 i=1;
 j=1;
 for t=tmStart:tmEnd-1 %Get the points from the clInfo array
-    if((timeArray(t,1)==0)||(timeArray(t+1,1)==0))
-        continue
-    end
     t0Points = clInfo(timeArray(t,1):timeArray(t,2),1:3)'; %COM points first time point
     t1Points = clInfo(timeArray(t+1,1):timeArray(t+1,2),1:3)'; %COM points second time point
     
@@ -476,19 +461,17 @@ for i=1:s(1) %Now find the parents to each
         PC(i,2) = j;
     end
 end
-save('PC_Relationships','PC');
-cd ..
+save([pwd '/TRACKING/PC_Relationships'],'PC');
 
 %% Location Assessment of each region
 clear all
-load('data_config');
-spm = input('Which specimen do you want to measure? ');
-cd(['SPM' num2str(spm,'%.2u')]);
 
 %load data
+mkdir PHY_DIST
+load('data_config');
 load('zStacks');
-load('cell_location_information');
-load('PC_Relationships');
+load(['3D_SEG/SPM' num2str(spm,'%.2u') '/cell_location_information']);
+load('TRACKING/PC_Relationships');
 
 %Find the size of the time array so that we can talk about each individual
 %point
@@ -498,12 +481,9 @@ scl = size(clInfo);
 phDist = zeros(scl(1),3);
 
 for t=1:s(1)
-    disp(['Mapping to physical distances for time ' num2str(t) ' of ' num2str(s(1))])
+    t
     %Load the contours of the root and find the 3D midline
     load(['ROOT_BORDER/AC_Multiview_Info_TM' num2str(t,'%.4u')]);
-    if(size(ACV1,1)==0) %BF segmentation error
-        continue;
-    end
     ACV1(1,:) = filtContour(ACV1(1,:),100,50);
     ACV1(3,:) = filtContour(ACV1(3,:),100,50);
     ACV2(1,:) = filtContour(ACV2(1,:),100,50);
@@ -516,29 +496,8 @@ for t=1:s(1)
    
     
     %Find the physical distance of each region
-    if(timeArray(t,1)==0)
-        continue;
-    end
     for cl=timeArray(t,1):timeArray(t,2)
         [phDist(cl,1), phDist(cl,2), phDist(cl,3)]=rootCylCoord(clInfo(cl,1),Ymax-clInfo(cl,2),clInfo(cl,3),xPix,yPix,zPix,S);
     end
 end
-save('phDist','phDist');
-
-%% Collecting data and saving
-clear all
-spm = input('Which specimen do you want to configure data for? ');
-cd(['SPM' num2str(spm,'%.2u')]);
-
-load('cell_location_information')
-load('delta_set')
-load('PC_Relationships')
-if exist('phDist.mat')
-    load('phDist')
-end
-load('shape_info')
-load('zStacks')
-
-save(['SPM' num2str(spm,'%.2u') 'prepdata']);
-
-cd ..
+save('PHY_DIST/phDist','phDist');
